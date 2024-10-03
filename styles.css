@@ -11,12 +11,12 @@ body {
     height: 100vh;
 }
 
-/* Barra lateral más fina */
+/* Barra lateral mucho más fina */
 .sidebar {
-    width: 80px; /* Ancho reducido de la barra lateral */
+    width: 50px; /* Ancho reducido a 50px */
     background-color: white;
     border-right: 2px solid #ddd;
-    padding: 20px 10px; /* Menos espaciado para la barra */
+    padding: 10px 5px; /* Menos espaciado */
     box-shadow: 2px 0 5px rgba(0,0,0,0.1);
     display: flex;
     flex-direction: column;
@@ -25,12 +25,12 @@ body {
 
 .app-icon {
     text-align: center;
-    margin-bottom: 30px;
+    margin-bottom: 20px;
 }
 
 .app-icon img {
-    width: 50px; /* Tamaño más pequeño para el icono */
-    height: 50px;
+    width: 40px; /* Tamaño más pequeño para el icono */
+    height: 40px;
 }
 
 .menu {
@@ -39,18 +39,19 @@ body {
 }
 
 .menu-item {
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 .menu-item a {
     text-decoration: none;
     color: grey;
-    font-weight: 600;
-    font-size: 14px; /* Letra más pequeña */
-    display: block;
-    text-align: center;
-    padding: 10px; /* Menos espacio para el texto */
-    border-radius: 15px;
+    font-size: 0; /* Esconde el texto del menú */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 40px; /* Alinea con el tamaño de los iconos */
+    height: 40px;
+    border-radius: 50%;
     transition: all 0.3s ease;
 }
 
@@ -61,6 +62,19 @@ body {
 
 .menu-item.active a {
     background-color: #28a745;
+    color: white;
+}
+
+/* Iconos del menú */
+.menu-item a::before {
+    content: attr(data-icon);
+    font-family: 'Montserrat', sans-serif;
+    font-size: 18px; /* Tamaño del icono */
+    color: grey;
+}
+
+.menu-item.active a::before, 
+.menu-item:hover a::before {
     color: white;
 }
 
