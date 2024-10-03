@@ -8,76 +8,70 @@
 </head>
 <body>
     <div class="container">
-        <aside class="sidebar">
-            <div class="app-icon">
-                <img src="icon.png" alt="App Icon" style="width: 40px; height: 40px;">
-            </div>
-            <ul class="menu">
-                <li class="menu-item active"><a href="#">D</a></li>
-                <li class="menu-item"><a href="#">O</a></li>
-                <li class="menu-item"><a href="#">S</a></li>
-                <li class="menu-item"><a href="#">I</a></li>
-                <li class="menu-item"><a href="#">M</a></li>
-                <li class="menu-item"><a href="#">M</a></li>
-                <li class="menu-item"><a href="#">S</a></li>
-            </ul>
-        </aside>
-        <main class="main-content">
-            <div class="header-bar" id="header">
+        <!-- Barra Lateral -->
+        <div class="sidebar">
+            <img src="icon.png" alt="Icono de la App" style="width: 30px; margin-bottom: 20px;">
+            <div class="icon" title="Dashboard">📊</div>
+            <div class="icon" title="Overview">📈</div>
+            <div class="icon" title="Sales">💰</div>
+            <div class="icon" title="Inventory">📦</div>
+            <div class="icon" title="Members">👥</div>
+            <div class="icon" title="Messages">💬</div>
+            <div class="icon" title="Settings">⚙️</div>
+        </div>
+
+        <!-- Contenido Principal -->
+        <div class="dashboard">
+            <!-- Barra Superior -->
+            <div class="header-bar">
                 <input type="text" class="search-bar" placeholder="Buscar...">
                 <div class="header-icons">
-                    <div class="icon"><img src="notification-icon.png" alt="Notificaciones" style="width: 25px; height: 25px;"></div>
-                    <div class="icon"><img src="another-icon.png" alt="Otra función" style="width: 25px; height: 25px;"></div>
+                    <div class="icon">🔔</div>
+                    <div class="icon">⚙️</div>
                     <div class="profile">
-                        <img src="user-photo.jpg" alt="Usuario" style="width: 40px; height: 40px;">
+                        <img src="user.jpg" alt="Usuario" style="width: 30px; border-radius: 50%;">
                         <span class="user-name">Usuario</span>
                     </div>
                 </div>
             </div>
-            <div class="dashboard">
-                <!-- Sección Informativa -->
-                <div class="section-info">
-                    <div class="dashboard-item">
-                        <h3>Miembros Activos</h3>
-                        <p class="large-number">120</p>
-                        <p class="small-number">Total: 150</p>
-                    </div>
-                    <div class="dashboard-item">
-                        <h3>Ventas</h3>
-                        <p class="large-number">$2000</p>
-                        <p class="small-number">Meta: $3000</p>
-                    </div>
-                    <div class="dashboard-item">
-                        <h3>Asistencia</h3>
-                        <p class="large-number">75%</p>
-                        <p class="small-number">Total: 160</p>
-                    </div>
-                    <div class="dashboard-item">
-                        <h3>Información Relevante</h3>
-                        <p class="large-number">Evento: Día de Puertas Abiertas</p>
-                    </div>
+
+            <!-- Sección Informativa -->
+            <div class="section-info">
+                <div class="dashboard-item">
+                    <div class="large-number">150</div>
+                    <div class="small-number">Miembros Activos / 200</div>
                 </div>
-                <div class="separator"></div>
-                <!-- Sección de Gráficos -->
-                <div class="section-graphs">
-                    <div class="bottom-left">
-                        <div class="dashboard-item">
-                            <h3>Gráfico 1</h3>
-                            <p>[Gráfico]</p>
-                        </div>
-                        <div class="dashboard-item">
-                            <h3>Gráfico 2</h3>
-                            <p>[Gráfico]</p>
-                        </div>
-                    </div>
-                    <div class="dashboard-item large">
-                        <h3>Gráfico General</h3>
-                        <p>[Gráfico]</p>
-                    </div>
+                <div class="dashboard-item">
+                    <div class="large-number">50</div>
+                    <div class="small-number">Ventas / 100</div>
+                </div>
+                <div class="dashboard-item">
+                    <div class="large-number">75%</div>
+                    <div class="small-number">Asistencia</div>
+                </div>
+                <div class="dashboard-item">
+                    <div class="large-number">$1000</div>
+                    <div class="small-number">Dinero en Caja</div> <!-- Cambiado a "Dinero en Caja" -->
                 </div>
             </div>
-        </main>
+
+            <div class="separator"></div>
+
+            <!-- Sección de Gráficos -->
+            <div class="section-graphs">
+                <div class="bottom-left">
+                    <div class="dashboard-item large">
+                        <!-- Aquí puedes añadir un gráfico o información adicional -->
+                    </div>
+                    <div class="dashboard-item large">
+                        <!-- Aquí puedes añadir un gráfico o información adicional -->
+                    </div>
+                </div>
+                <div class="dashboard-item large">
+                    <!-- Aquí puedes añadir un gráfico o información adicional -->
+                </div>
+            </div>
+        </div>
     </div>
-    <script src="script.js"></script>
 </body>
 </html>
