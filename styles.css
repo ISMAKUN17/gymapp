@@ -11,9 +11,9 @@ body {
     height: 100vh;
 }
 
-/* Barra lateral fina */
+/* Barra lateral fina y redondeada */
 .sidebar {
-    width: 50px; /* Ancho reducido a 50px */
+    width: 50px; 
     background-color: white;
     border-right: 2px solid #ddd;
     padding: 10px 5px;
@@ -21,6 +21,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
+    border-radius: 25px; /* Bordes redondeados */
 }
 
 .app-icon {
@@ -42,7 +43,7 @@ body {
 
 .menu-item {
     margin-bottom: 15px;
-    width: 100%; /* Asegura que los iconos queden centrados */
+    width: 100%;
 }
 
 .menu-item a {
@@ -55,9 +56,17 @@ body {
     height: 40px;
     border-radius: 50%;
     transition: all 0.3s ease;
+    background-color: transparent;
 }
 
+.menu-item a img {
+    width: 20px;
+    height: 20px;
+}
+
+/* Efecto de zoom en los iconos al pasar el cursor */
 .menu-item:hover a {
+    transform: scale(1.2); /* Zoom al pasar por encima */
     background-color: #28a745;
     color: white;
 }
@@ -65,11 +74,7 @@ body {
 .menu-item.active a {
     background-color: #28a745;
     color: white;
-}
-
-.menu-item a img {
-    width: 20px; /* Tamaño de los iconos */
-    height: 20px;
+    transform: scale(1.2); /* Mantiene el zoom en el icono activo */
 }
 
 /* Contenido principal */
@@ -89,7 +94,7 @@ body {
 .search-bar {
     border: 2px solid #28a745;
     padding: 10px;
-    border-radius: 25px;
+    border-radius: 25px; /* Bordes redondeados en el buscador */
     outline: none;
     width: 300px;
 }
@@ -101,11 +106,18 @@ body {
 
 .icon {
     margin-left: 20px;
+    transition: all 0.3s ease;
 }
 
 .icon img {
     width: 30px;
     height: 30px;
+    border-radius: 50%; /* Iconos redondos */
+}
+
+/* Efecto de zoom en los iconos de notificaciones al pasar el cursor */
+.icon:hover img {
+    transform: scale(1.2); /* Zoom */
 }
 
 .profile {
@@ -117,7 +129,7 @@ body {
 .profile img {
     width: 40px;
     height: 40px;
-    border-radius: 50%;
+    border-radius: 50%; /* Imagen de perfil redonda */
     margin-right: 10px;
 }
 
@@ -126,7 +138,7 @@ body {
     color: #333;
 }
 
-/* Cuadros del dashboard */
+/* Cuadros del dashboard redondeados */
 .dashboard {
     display: flex;
     gap: 20px;
@@ -136,9 +148,15 @@ body {
     flex: 1;
     background-color: white;
     padding: 20px;
-    border-radius: 15px;
+    border-radius: 15px; /* Bordes redondeados */
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     text-align: center;
+    transition: all 0.3s ease;
+}
+
+/* Efecto de zoom en los cuadros del dashboard al pasar el cursor */
+.dashboard-item:hover {
+    transform: scale(1.05); /* Zoom al pasar el cursor */
 }
 
 .dashboard-item h3 {
