@@ -11,7 +11,7 @@ body {
     height: 100vh;
 }
 
-/* Barra lateral más fina */
+/* Barra lateral fina */
 .sidebar {
     width: 50px; /* Ancho reducido a 50px */
     background-color: white;
@@ -33,6 +33,7 @@ body {
     height: 40px;
 }
 
+/* Menú */
 .menu {
     list-style: none;
     padding: 0;
@@ -54,7 +55,6 @@ body {
     height: 40px;
     border-radius: 50%;
     transition: all 0.3s ease;
-    background-color: transparent;
 }
 
 .menu-item:hover a {
