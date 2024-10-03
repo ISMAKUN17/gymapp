@@ -9,7 +9,6 @@ body {
 .container {
     display: flex;
     height: 100vh;
-    flex-wrap: wrap; /* Permite que el contenido se ajuste en pantallas más pequeñas */
 }
 
 /* Barra lateral */
@@ -23,53 +22,8 @@ body {
     flex-direction: column;
     align-items: center;
     border-radius: 25px;
-}
-
-.app-icon {
-    text-align: center;
-    margin-bottom: 20px;
-}
-
-.menu {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.menu-item {
-    margin-bottom: 15px;
-    width: 100%;
-}
-
-.menu-item a {
-    text-decoration: none;
-    color: grey;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    transition: all 0.2s ease-in-out;
-    background-color: transparent;
-}
-
-.menu-item:hover a {
-    transform: scale(1.2);
-    background-color: #28a745;
-    box-shadow: 0px 0px 10px #28a745;
-}
-
-.menu-item.active a {
-    background-color: #28a745;
-    box-shadow: 0px 0px 10px #28a745;
-}
-
-/* Contenido principal */
-.main-content {
-    flex-grow: 1;
-    padding: 20px;
-    background-color: #f0f0f0;
+    position: fixed; /* Fija la barra lateral */
+    height: 100vh; /* Ocupa toda la altura de la ventana */
 }
 
 /* Barra superior */
@@ -82,117 +36,102 @@ body {
     border-radius: 15px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     margin-bottom: 30px; /* Espacio inferior */
+    position: sticky; /* Fija la barra en la parte superior al hacer scroll */
+    top: 0; /* Alinea con la parte superior */
+    z-index: 1000; /* Asegura que esté en la parte superior */
 }
 
+/* Estilo de la barra de búsqueda */
 .search-bar {
-    border: 2px solid #28a745;
-    padding: 10px;
-    border-radius: 25px;
+    border-radius: 20px;
+    padding: 8px;
+    border: 1px solid #ddd;
     width: 300px;
 }
 
+/* Estilo de iconos en la barra */
 .header-icons {
     display: flex;
     align-items: center;
 }
 
-.icon:hover img {
-    transform: scale(1.2);
-    box-shadow: 0px 0px 10px #28a745;
+.icon {
+    margin: 0 10px;
+    cursor: pointer;
 }
 
-.profile img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    margin-right: 10px;
+.profile {
+    display: flex;
+    align-items: center;
 }
 
 .user-name {
-    font-weight: 600;
+    margin-left: 10px;
 }
 
-/* Cuadros del dashboard */
+/* Estilos para la sección del dashboard */
 .dashboard {
-    display: flex;
-    flex-direction: column;
-    gap: 30px; /* Aumentamos el espacio entre las secciones */
+    margin-left: 60px; /* Para dejar espacio a la barra lateral */
+    padding: 20px;
 }
 
-/* Sección Informativa */
+/* Sección informativa */
 .section-info {
     display: flex;
-    gap: 30px; /* Espacio entre los cuadros */
+    justify-content: space-between;
+    margin-bottom: 20px; /* Espacio entre secciones */
 }
 
-/* Cuadros de la sección informativa */
+/* Elementos de la sección informativa */
 .dashboard-item {
-    flex: 1; /* Ajusta el ancho de los cuadros */
     background-color: white;
-    padding: 20px;
     border-radius: 15px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    text-align: center;
-    transition: all 0.15s ease-in-out; /* Suaviza la animación */
-    min-width: 100px; /* Ancho mínimo para evitar que sean demasiado pequeños */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    padding: 20px;
+    flex: 1;
+    margin: 0 10px; /* Espacio entre cuadros */
+    transition: transform 0.2s, box-shadow 0.2s; /* Transición suave */
 }
 
 .dashboard-item:hover {
-    transform: scale(1.03); /* Ajustamos el zoom a algo más sutil */
-    box-shadow: 0px 0px 15px #28a745;
+    transform: scale(1.05); /* Efecto de zoom al pasar el cursor */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
 }
 
-.dashboard-item h3 {
-    color: #28a745;
-}
-
-/* Estilos para los números */
+/* Estilo para los números */
 .large-number {
-    font-size: 32px; /* Tamaño grande para resaltar */
-    font-weight: bold; /* Negrita */
-    margin: 10px 0;
+    font-size: 2em;
+    font-weight: bold;
 }
 
 .small-number {
-    font-size: 12px; /* Tamaño más pequeño para el total */
-    color: #666; /* Color más tenue */
+    font-size: 0.8em;
+    font-weight: normal;
 }
 
 /* Separador */
 .separator {
-    height: 2px;
+    height: 10px;
     background-color: #ddd;
-    margin: 30px 0; /* Espacio superior e inferior */
+    margin: 20px 0;
 }
 
-/* Sección de Gráficos */
+/* Sección de gráficos */
 .section-graphs {
     display: flex;
-    gap: 30px; /* Aumentamos el espacio entre los cuadros */
-    flex-grow: 1; /* Asegura que esta sección tome el espacio restante */
+    justify-content: space-between;
 }
 
-/* Parte inferior: dos cuadros rectangulares a la izquierda y uno largo a la derecha */
+/* Gráficos */
 .bottom-left {
     display: flex;
     flex-direction: column;
-    gap: 30px;
-    flex: 1;
+    width: 65%; /* Ajustar el ancho */
 }
 
 .dashboard-item.large {
-    flex: 2;
-    background-color: white;
-    padding: 20px;
-    border-radius: 15px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    text-align: center;
-    transition: all 0.15s ease-in-out;
-}
-
-/* Ajustamos los cuadros inferiores para que sean más rectangulares */
-.dashboard.bottom .bottom-left .dashboard-item {
-    flex: 1; /* Asegura que sean más altos */
+    flex: 1;
+    margin-left: 10px; /* Espacio entre cuadros */
 }
 
 /* Estilos responsivos */
