@@ -122,18 +122,19 @@ body {
 /* Sección Informativa */
 .section-info {
     display: flex;
-    gap: 30px;
+    gap: 30px; /* Espacio entre los cuadros */
 }
 
 /* Cuadros de la sección informativa */
 .dashboard-item {
-    flex: 1;
+    flex: 1; /* Ajusta el ancho de los cuadros */
     background-color: white;
     padding: 20px;
     border-radius: 15px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     text-align: center;
     transition: all 0.15s ease-in-out; /* Suaviza la animación */
+    min-width: 100px; /* Ancho mínimo para evitar que sean demasiado pequeños */
 }
 
 .dashboard-item:hover {
@@ -145,9 +146,16 @@ body {
     color: #28a745;
 }
 
-.dashboard-item p {
-    font-size: 24px;
-    margin-top: 10px;
+/* Estilos para los números */
+.large-number {
+    font-size: 32px; /* Tamaño grande para resaltar */
+    font-weight: bold; /* Negrita */
+    margin: 10px 0;
+}
+
+.small-number {
+    font-size: 12px; /* Tamaño más pequeño para el total */
+    color: #666; /* Color más tenue */
 }
 
 /* Separador */
@@ -184,30 +192,30 @@ body {
 
 /* Ajustamos los cuadros inferiores para que sean más rectangulares */
 .dashboard.bottom .bottom-left .dashboard-item {
-    height: 150px; /* Ajustamos la altura para hacerlo más rectangular */
+    flex: 1; /* Asegura que sean más altos */
 }
 
-.dashboard-item.large:hover,
-.bottom-left .dashboard-item:hover {
-    transform: scale(1.03);
-    box-shadow: 0px 0px 15px #28a745;
-}
-
-/* Responsividad */
+/* Estilos responsivos */
 @media (max-width: 768px) {
     .dashboard {
-        flex-direction: column;
+        flex-direction: column; /* Cambia la dirección en pantallas más pequeñas */
     }
 
-    .section-info {
-        flex-direction: column;
+    .sidebar {
+        width: 40px; /* Reduce el ancho de la barra lateral */
     }
 
+    .header-bar {
+        flex-direction: column; /* Organiza la barra en columna */
+    }
+
+    .search-bar {
+        width: 100%; /* Aumenta el ancho de la barra de búsqueda */
+        margin-bottom: 10px; /* Espacio inferior */
+    }
+
+    .section-info,
     .section-graphs {
-        flex-direction: column;
-    }
-
-    .bottom-left {
-        flex-direction: column;
+        flex-direction: column; /* Cambia a columna en pantallas más pequeñas */
     }
 }
