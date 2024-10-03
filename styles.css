@@ -13,42 +13,45 @@ body {
 
 /* Barra lateral más fina */
 .sidebar {
-    width: 80px; /* Ancho reducido */
+    width: 80px; /* Ancho reducido de la barra lateral */
     background-color: white;
     border-right: 2px solid #ddd;
-    padding: 20px 10px; /* Ajuste de padding */
+    padding: 20px 10px; /* Menos espaciado para la barra */
     box-shadow: 2px 0 5px rgba(0,0,0,0.1);
     display: flex;
     flex-direction: column;
-    align-items: center; /* Centrado de los iconos */
+    align-items: center;
+}
+
+.app-icon {
+    text-align: center;
+    margin-bottom: 30px;
 }
 
 .app-icon img {
-    width: 40px;
-    height: 40px;
-    margin-bottom: 30px;
+    width: 50px; /* Tamaño más pequeño para el icono */
+    height: 50px;
 }
 
 .menu {
     list-style: none;
     padding: 0;
-    width: 100%;
 }
 
 .menu-item {
     margin-bottom: 20px;
-    text-align: center; /* Alineación centrada */
 }
 
 .menu-item a {
     text-decoration: none;
     color: grey;
     font-weight: 600;
+    font-size: 14px; /* Letra más pequeña */
     display: block;
-    padding: 10px;
+    text-align: center;
+    padding: 10px; /* Menos espacio para el texto */
     border-radius: 15px;
     transition: all 0.3s ease;
-    font-size: 14px; /* Tamaño de fuente reducido */
 }
 
 .menu-item:hover a {
