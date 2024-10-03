@@ -3,64 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gym Admin Dashboard</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+    <title>Administración de Gym</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Enlace a tu archivo CSS -->
+    <style>
+        /* Incluiré aquí el CSS también para asegurarnos de que funcione */
+    </style>
 </head>
 <body>
     <div class="container">
         <!-- Barra lateral -->
-        <aside class="sidebar">
+        <div class="sidebar">
             <div class="app-icon">
-                <img src="icono-gym.png" alt="Gym Icon">
+                <!-- Icono de la app -->
+                <img src="https://via.placeholder.com/40" alt="App Icon">
             </div>
-            <nav class="menu">
-                <ul>
-                    <li class="menu-item active"><a href="#">Dashboard</a></li>
-                    <li class="menu-item"><a href="#">Overview</a></li>
-                    <li class="menu-item"><a href="#">Sales</a></li>
-                    <li class="menu-item"><a href="#">Inventory</a></li>
-                    <li class="menu-item"><a href="#">Members</a></li>
-                    <li class="menu-item"><a href="#">Messages</a></li>
-                    <li class="menu-item"><a href="#">Settings</a></li>
-                </ul>
-            </nav>
-        </aside>
+            <ul class="menu">
+                <li class="menu-item active">
+                    <a href="#" data-icon="🏠"><img src="https://via.placeholder.com/20" alt="Dashboard"></a>
+                </li>
+                <li class="menu-item">
+                    <a href="#" data-icon="🔍"><img src="https://via.placeholder.com/20" alt="Overview"></a>
+                </li>
+                <li class="menu-item">
+                    <a href="#" data-icon="💰"><img src="https://via.placeholder.com/20" alt="Sales"></a>
+                </li>
+                <li class="menu-item">
+                    <a href="#" data-icon="📦"><img src="https://via.placeholder.com/20" alt="Inventory"></a>
+                </li>
+                <li class="menu-item">
+                    <a href="#" data-icon="👥"><img src="https://via.placeholder.com/20" alt="Members"></a>
+                </li>
+                <li class="menu-item">
+                    <a href="#" data-icon="✉️"><img src="https://via.placeholder.com/20" alt="Messages"></a>
+                </li>
+                <li class="menu-item">
+                    <a href="#" data-icon="⚙️"><img src="https://via.placeholder.com/20" alt="Settings"></a>
+                </li>
+            </ul>
+        </div>
 
         <!-- Contenido principal -->
-        <main class="main-content">
-            <header class="header">
+        <div class="main-content">
+            <div class="header">
                 <input type="text" class="search-bar" placeholder="Buscar...">
                 <div class="header-icons">
-                    <div class="icon notification">
-                        <img src="notification-icon.png" alt="Notificaciones">
-                    </div>
-                    <div class="icon small-icon">
-                        <img src="other-icon.png" alt="Otra Función">
+                    <div class="icon">
+                        <img src="https://via.placeholder.com/30" alt="Notificaciones">
                     </div>
                     <div class="profile">
-                        <img src="user-photo.jpg" alt="Foto Usuario">
-                        <span class="user-name">Nombre Usuario</span>
+                        <img src="https://via.placeholder.com/40" alt="Foto de usuario">
+                        <span class="user-name">John Doe</span>
                     </div>
                 </div>
-            </header>
-
-            <!-- Cuadros del dashboard -->
-            <section class="dashboard">
+            </div>
+            <div class="dashboard">
                 <div class="dashboard-item">
-                    <h3>Total Miembros</h3>
-                    <p>125</p>
+                    <h3>Miembros activos</h3>
+                    <p>250</p>
                 </div>
                 <div class="dashboard-item">
-                    <h3>Ventas Mensuales</h3>
-                    <p>$12,500</p>
+                    <h3>Ventas del mes</h3>
+                    <p>$5000</p>
                 </div>
                 <div class="dashboard-item">
-                    <h3>Inventario</h3>
-                    <p>En buen estado</p>
+                    <h3>Productos en inventario</h3>
+                    <p>320</p>
                 </div>
-            </section>
-        </main>
+            </div>
+        </div>
     </div>
 </body>
 </html>
