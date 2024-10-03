@@ -24,6 +24,7 @@ body {
     border-radius: 25px;
     position: fixed; /* Fija la barra lateral */
     height: 100vh; /* Ocupa toda la altura de la ventana */
+    top: 0; /* Alinea con la parte superior */
 }
 
 /* Barra superior */
@@ -73,6 +74,7 @@ body {
 .dashboard {
     margin-left: 60px; /* Para dejar espacio a la barra lateral */
     padding: 20px;
+    padding-left: 10px; /* Espacio adicional */
 }
 
 /* Sección informativa */
