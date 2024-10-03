@@ -49,7 +49,7 @@ body {
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease-in-out;
     background-color: transparent;
 }
 
@@ -109,7 +109,7 @@ body {
 /* Cuadros del dashboard */
 .dashboard {
     display: flex;
-    gap: 20px;
+    gap: 30px; /* Aumentamos el espacio entre los cuadros */
 }
 
 /* Parte superior: cuatro cuadros */
@@ -120,11 +120,11 @@ body {
     border-radius: 15px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     text-align: center;
-    transition: all 0.3s ease;
+    transition: all 0.15s ease-in-out; /* Suaviza la animación */
 }
 
 .dashboard-item:hover {
-    transform: scale(1.05);
+    transform: scale(1.03); /* Ajustamos el zoom a algo más sutil */
     box-shadow: 0px 0px 15px #28a745;
 }
 
@@ -137,17 +137,17 @@ body {
     margin-top: 10px;
 }
 
-/* Parte inferior: dos cuadros a la izquierda y uno grande a la derecha */
+/* Parte inferior: dos cuadros rectangulares a la izquierda y uno largo a la derecha */
 .dashboard.bottom {
     display: flex;
     margin-top: 20px;
-    gap: 20px;
+    gap: 30px; /* Aumentamos el espacio entre los cuadros */
 }
 
 .bottom-left {
     display: flex;
     flex-direction: column;
-    gap: 20px;
+    gap: 30px;
     flex: 1;
 }
 
@@ -158,10 +158,16 @@ body {
     border-radius: 15px;
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     text-align: center;
-    transition: all 0.3s ease;
+    transition: all 0.15s ease-in-out;
 }
 
-.dashboard-item.large:hover {
-    transform: scale(1.05);
+/* Ajustamos los cuadros inferiores para que sean más rectangulares */
+.dashboard.bottom .bottom-left .dashboard-item {
+    height: 150px; /* Ajustamos la altura para hacerlo más rectangular */
+}
+
+.dashboard-item.large:hover,
+.dashboard.bottom .bottom-left .dashboard-item:hover {
+    transform: scale(1.03);
     box-shadow: 0px 0px 15px #28a745;
 }
