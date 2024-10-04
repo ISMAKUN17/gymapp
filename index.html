@@ -1,77 +1,187 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="styles.css">
-    <title>Dashboard del Gym</title>
-</head>
-<body>
-    <div class="container">
-        <!-- Barra Lateral -->
-        <div class="sidebar">
-            <img src="icon.png" alt="Icono de la App" style="width: 40px; margin-bottom: 20px;">
-            <div class="icon" title="Dashboard">📊</div>
-            <div class="icon" title="Overview">📈</div>
-            <div class="icon" title="Sales">💰</div>
-            <div class="icon" title="Inventory">📦</div>
-            <div class="icon" title="Members">👥</div>
-            <div class="icon" title="Messages">💬</div>
-            <div class="icon" title="Settings">⚙️</div>
-        </div>
+/* Configuración básica */
+body {
+    font-family: 'Montserrat', sans-serif;
+    background-color: #f0f0f0;
+    margin: 0;
+    padding: 0;
+}
 
-        <!-- Contenido Principal -->
-        <div class="dashboard">
-            <!-- Barra Superior -->
-            <div class="header-bar">
-                <input type="text" class="search-bar" placeholder="Buscar...">
-                <div class="header-icons">
-                    <div class="icon">🔔</div>
-                    <div class="icon">⚙️</div>
-                    <div class="profile">
-                        <img src="user.jpg" alt="Usuario" style="width: 40px; border-radius: 50%;">
-                        <span class="user-name">Usuario</span>
-                    </div>
-                </div>
-            </div>
+.container {
+    display: flex;
+    height: 100vh;
+}
 
-            <!-- Sección Informativa -->
-            <div class="section-info">
-                <div class="dashboard-item">
-                    <div class="large-number">150</div>
-                    <div class="small-number">Miembros Activos / 200</div>
-                </div>
-                <div class="dashboard-item">
-                    <div class="large-number">50</div>
-                    <div class="small-number">Ventas / 100</div>
-                </div>
-                <div class="dashboard-item">
-                    <div class="large-number">75%</div>
-                    <div class="small-number">Asistencia</div>
-                </div>
-                <div class="dashboard-item">
-                    <div class="large-number">$1000</div>
-                    <div class="small-number">Dinero en Caja</div>
-                </div>
-            </div>
+/* Barra lateral */
+.sidebar {
+    width: 50px; 
+    background-color: white;
+    border-right: 2px solid #ddd;
+    padding: 10px 5px;
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    border-radius: 15px;
+    position: fixed; /* Fija la barra lateral */
+    height: 100vh; /* Ocupa toda la altura de la ventana */
+    top: 0; /* Alinea con la parte superior */
+}
 
-            <div class="separator"></div>
+/* Espaciado entre iconos */
+.icon {
+    margin: 10px 0; /* Espacio vertical entre iconos */
+    cursor: pointer;
+    font-size: 1.5em; /* Aumentar el tamaño del icono */
+    transition: transform 0.2s, box-shadow 0.3s; /* Añadir transición suave */
+}
 
-            <!-- Sección de Gráficos -->
-            <div class="section-graphs">
-                <div class="bottom-left">
-                    <div class="dashboard-item large">
-                        <!-- Aquí puedes añadir un gráfico o información adicional -->
-                    </div>
-                    <div class="dashboard-item large">
-                        <!-- Aquí puedes añadir un gráfico o información adicional -->
-                    </div>
-                </div>
-                <div class="dashboard-item large">
-                    <!-- Aquí puedes añadir un gráfico o información adicional -->
-                </div>
-            </div>
-        </div>
-    </div>
-</body>
-</html>
+.icon:hover {
+    transform: scale(1.2); /* Efecto de zoom al pasar el cursor */
+    box-shadow: 0 4px 10px rgba(144,238,144,0.7); /* Efecto de sombra verde claro */
+}
+
+/* Barra superior */
+.header-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: white;
+    padding: 15px 20px;
+    border-radius: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    margin-bottom: 20px; /* Espacio inferior */
+    position: sticky; /* Fija la barra en la parte superior al hacer scroll */
+    top: 0; /* Alinea con la parte superior */
+    z-index: 1000; /* Asegura que esté en la parte superior */
+}
+
+/* Estilo de la barra de búsqueda */
+.search-bar {
+    border-radius: 20px;
+    padding: 10px;
+    border: 1px solid #ddd;
+    width: 350px;
+}
+
+/* Estilo de iconos en la barra */
+.header-icons {
+    display: flex;
+    align-items: center;
+}
+
+.profile {
+    display: flex;
+    align-items: center;
+}
+
+.user-name {
+    margin-left: 10px;
+}
+
+/* Estilos para la sección del dashboard */
+.dashboard {
+    margin-left: 60px; /* Para dejar espacio a la barra lateral */
+    padding: 20px;
+    flex-grow: 1; /* Permite que el área del dashboard ocupe el espacio restante */
+}
+
+/* Sección informativa */
+.section-info {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* Cuatro columnas de igual tamaño */
+    gap: 20px; /* Espacio entre cuadros */
+    margin-bottom: 20px; /* Espacio entre secciones */
+}
+
+/* Elementos de la sección informativa */
+.dashboard-item {
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    padding: 30px; /* Aumentar el padding */
+    transition: transform 0.3s, box-shadow 0.3s; /* Transición más suave */
+}
+
+.dashboard-item:hover {
+    transform: scale(1.05); /* Efecto de zoom al pasar el cursor */
+    box-shadow: 0 4px 10px rgba(144,238,144,0.7); /* Efecto de sombra verde claro */
+}
+
+/* Estilo para los números */
+.large-number {
+    font-size: 2.5em; /* Aumentar el tamaño de la letra */
+    font-weight: bold;
+}
+
+.small-number {
+    font-size: 1em; /* Aumentar el tamaño de la letra */
+    font-weight: normal;
+}
+
+/* Separador */
+.separator {
+    height: 10px;
+    background-color: #ddd;
+    margin: 20px 0;
+}
+
+/* Sección de gráficos */
+.section-graphs {
+    display: flex;
+    justify-content: space-between;
+}
+
+/* Gráficos */
+.bottom-left {
+    display: flex;
+    flex-direction: column;
+    width: 65%; /* Ajustar el ancho */
+}
+
+.dashboard-item.large {
+    flex: 1;
+    margin-left: 10px; /* Espacio entre cuadros */
+}
+
+/* Estilos responsivos */
+@media (max-width: 1080px) {
+    .dashboard {
+        flex-direction: column; /* Cambia la dirección en pantallas más pequeñas */
+    }
+
+    .sidebar {
+        width: 40px; /* Reduce el ancho de la barra lateral */
+    }
+
+    .header-bar {
+        flex-direction: column; /* Organiza la barra en columna */
+    }
+
+    .search-bar {
+        width: 100%; /* Aumenta el ancho de la barra de búsqueda */
+        margin-bottom: 10px; /* Espacio inferior */
+    }
+
+    .section-info,
+    .section-graphs {
+        flex-direction: column; /* Cambia a columna en pantallas más pequeñas */
+    }
+}
+
+/* Color Highlight Verde Claro */
+.dashboard-item:hover {
+    background-color: #d4f8e8; /* Color verde claro */
+}
+
+.icon:hover {
+    background-color: #d4f8e8; /* Color verde claro al pasar el cursor */
+}
+
+/* Ajustes de márgenes */
+.section-info > .dashboard-item {
+    margin: 0; /* Sin márgenes para que se acomoden perfectamente */
+}
+
+.section-graphs > .dashboard-item {
+    margin: 10px; /* Espaciado entre los cuadros */
+}
