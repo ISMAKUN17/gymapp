@@ -1,77 +1,78 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gym Dashboard</title>
     <link rel="stylesheet" href="styles.css">
-    <title>Dashboard del Gym</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </head>
 <body>
-    <div class="container">
-        <!-- Barra Lateral -->
-        <div class="sidebar">
-            <img src="icon.png" alt="Icono de la App" style="width: 40px; margin-bottom: 20px;">
-            <div class="icon" title="Dashboard">📊</div>
-            <div class="icon" title="Overview">📈</div>
-            <div class="icon" title="Sales">💰</div>
-            <div class="icon" title="Inventory">📦</div>
-            <div class="icon" title="Members">👥</div>
-            <div class="icon" title="Messages">💬</div>
-            <div class="icon" title="Settings">⚙️</div>
-        </div>
 
-        <!-- Contenido Principal -->
-        <div class="dashboard">
-            <!-- Barra Superior -->
-            <div class="header-bar">
-                <input type="text" class="search-bar" placeholder="Buscar...">
-                <div class="header-icons">
-                    <div class="icon">🔔</div>
-                    <div class="icon">⚙️</div>
-                    <div class="profile">
-                        <img src="user.jpg" alt="Usuario" style="width: 40px; border-radius: 50%;">
-                        <span class="user-name">Usuario</span>
-                    </div>
-                </div>
-            </div>
+<div class="container">
 
-            <!-- Sección Informativa -->
-            <div class="section-info">
-                <div class="dashboard-item">
-                    <div class="large-number">150</div>
-                    <div class="small-number">Miembros Activos / 200</div>
-                </div>
-                <div class="dashboard-item">
-                    <div class="large-number">50</div>
-                    <div class="small-number">Ventas / 100</div>
-                </div>
-                <div class="dashboard-item">
-                    <div class="large-number">75%</div>
-                    <div class="small-number">Asistencia</div>
-                </div>
-                <div class="dashboard-item">
-                    <div class="large-number">$1000</div>
-                    <div class="small-number">Dinero en Caja</div>
-                </div>
-            </div>
-
-            <div class="separator"></div>
-
-            <!-- Sección de Gráficos -->
-            <div class="section-graphs">
-                <div class="bottom-left">
-                    <div class="dashboard-item large">
-                        <!-- Aquí puedes añadir un gráfico o información adicional -->
-                    </div>
-                    <div class="dashboard-item large">
-                        <!-- Aquí puedes añadir un gráfico o información adicional -->
-                    </div>
-                </div>
-                <div class="dashboard-item large">
-                    <!-- Aquí puedes añadir un gráfico o información adicional -->
-                </div>
-            </div>
-        </div>
+    <!-- Barra lateral izquierda -->
+    <div class="sidebar">
+        <i class="fas fa-tachometer-alt icon"></i>
+        <i class="fas fa-chart-bar icon"></i>
+        <i class="fas fa-cash-register icon"></i>
+        <i class="fas fa-box icon"></i>
+        <i class="fas fa-users icon"></i>
+        <i class="fas fa-envelope icon"></i>
+        <i class="fas fa-cog icon"></i>
     </div>
+
+    <!-- Contenido principal -->
+    <div class="main-content">
+
+        <!-- Barra superior -->
+        <div class="header-bar">
+            <input type="text" class="search-bar" placeholder="Buscar...">
+            <div class="header-icons">
+                <i class="fas fa-bell icon"></i>
+                <i class="fas fa-envelope icon"></i>
+                <div class="profile">
+                    <img src="https://via.placeholder.com/40" class="user-icon" alt="User Icon">
+                    <span class="user-name">Rosa Valdez</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección informativa (cuatro cuadros superiores) -->
+        <div class="section-info">
+            <div class="dashboard-item">
+                <div class="large-number">320</div>
+                <div class="small-number">/ 500 Miembros activos</div>
+            </div>
+            <div class="dashboard-item">
+                <div class="large-number">120</div>
+                <div class="small-number">/ Ventas</div>
+            </div>
+            <div class="dashboard-item">
+                <div class="large-number">85%</div>
+                <div class="small-number">/ Asistencia</div>
+            </div>
+            <div class="dashboard-item">
+                <div class="large-number">$12,500</div>
+                <div class="small-number">/ Dinero en caja</div>
+            </div>
+        </div>
+
+        <!-- Separador -->
+        <div class="separator"></div>
+
+        <!-- Sección de gráficos (tres cuadros inferiores) -->
+        <div class="section-graphs">
+            <div class="bottom-left">
+                <div class="dashboard-item">Gráfico 1</div>
+                <div class="dashboard-item">Gráfico 2</div>
+            </div>
+            <div class="dashboard-item large">Gráfico 3 (vertical)</div>
+        </div>
+
+    </div>
+</div>
+
 </body>
 </html>
