@@ -46,10 +46,10 @@ body {
     justify-content: space-between;
     align-items: center;
     background-color: white;
-    padding: 15px 20px;
+    padding: 10px 20px;
     border-radius: 15px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    margin-bottom: 20px;
+    height: 50px;
     position: sticky;
     top: 0;
     z-index: 1000;
@@ -58,9 +58,9 @@ body {
 /* Estilo de la barra de búsqueda */
 .search-bar {
     border-radius: 20px;
-    padding: 10px;
+    padding: 5px 10px;
     border: 1px solid #ddd;
-    width: 350px;
+    width: 250px;
 }
 
 /* Estilo de iconos en la barra */
@@ -91,7 +91,7 @@ body {
     background-color: white;
     border-radius: 15px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    padding: 30px;
+    padding: 20px;
     transition: transform 0.3s, box-shadow 0.3s;
 }
 
@@ -102,12 +102,12 @@ body {
 
 /* Estilo para los números */
 .large-number {
-    font-size: 2.5em;
+    font-size: 2.2em;
     font-weight: bold;
 }
 
 .small-number {
-    font-size: 1em;
+    font-size: 0.9em;
     font-weight: normal;
 }
 
@@ -128,7 +128,8 @@ body {
 .bottom-left {
     display: flex;
     flex-direction: column;
-    width: 70%; /* Ajustado para mayor espacio */
+    width: 65%; /* Ajustado para mayor espacio */
+    gap: 20px;
 }
 
 .dashboard-item.large {
