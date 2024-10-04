@@ -1,4 +1,4 @@
- /* Configuración básica */
+/* Configuración básica */
 body {
     font-family: 'Montserrat', sans-serif;
     background-color: #f0f0f0;
@@ -113,7 +113,7 @@ body {
 
 /* Separador más fino */
 .separator {
-    height: 3px;
+    height: 1px;
     background-color: #ddd;
     margin: 20px 0;
 }
@@ -137,27 +137,39 @@ body {
 }
 
 /* Estilos responsivos */
-@media (max-width: 1080px) {
-    .dashboard {
-        flex-direction: column;
+@media (max-width: 1200px) {
+    .section-info {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
     }
 
-    .sidebar {
-        width: 40px;
-    }
-
-    .header-bar {
-        flex-direction: column;
-    }
-
-    .search-bar {
-        width: 100%;
-        margin-bottom: 10px;
-    }
-
-    .section-info,
     .section-graphs {
         flex-direction: column;
+    }
+
+    .bottom-left {
+        width: 100%;
+    }
+
+    .dashboard-item.large {
+        width: 100%;
+        margin-top: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .section-info {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .bottom-left {
+        width: 100%;
+    }
+
+    .dashboard-item.large {
+        width: 100%;
+        margin-top: 20px;
     }
 }
 
@@ -168,13 +180,4 @@ body {
 
 .icon:hover {
     background-color: #d4f8e8;
-}
-
-/* Ajustes de márgenes */
-.section-info > .dashboard-item {
-    margin: 0;
-}
-
-.section-graphs > .dashboard-item {
-    margin: 10px;
 }
