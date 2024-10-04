@@ -80,12 +80,14 @@ body {
 .dashboard {
     margin-left: 60px; /* Para dejar espacio a la barra lateral */
     padding: 20px;
+    flex-grow: 1; /* Permite que el área del dashboard ocupe el espacio restante */
 }
 
 /* Sección informativa */
 .section-info {
-    display: flex;
-    justify-content: space-between;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* Cuatro columnas de igual tamaño */
+    gap: 20px; /* Espacio entre cuadros */
     margin-bottom: 20px; /* Espacio entre secciones */
 }
 
@@ -95,8 +97,6 @@ body {
     border-radius: 15px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     padding: 30px; /* Aumentar el padding */
-    flex: 1;
-    margin: 0 10px; /* Espacio entre cuadros */
     transition: transform 0.3s, box-shadow 0.3s; /* Transición más suave */
 }
 
@@ -173,7 +173,7 @@ body {
 
 /* Ajustes de márgenes */
 .section-info > .dashboard-item {
-    margin: 10px; /* Espaciado entre los cuadros */
+    margin: 0; /* Sin márgenes para que se acomoden perfectamente */
 }
 
 .section-graphs > .dashboard-item {
