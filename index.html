@@ -12,22 +12,24 @@
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.min.css" rel="stylesheet">
 <style>
   :root {
-    --primary-color: #3498db;
-    --secondary-color: #2ecc71;
+    --primary-color: #0052cc;  /* Deep blue */
+    --secondary-color: #ff6b00;  /* Vibrant orange */
+    --accent-color: #00b894;  /* Energizing green */
     --background-color: #f8f9fa;
     --text-color: #333;
     --card-bg: #fff;
-    --sidebar-bg: #2c3e50;
+    --sidebar-bg: #001f4d;
     --sidebar-text: #ecf0f1;
   }
 
   body.dark-mode {
     --primary-color: #3498db;
-    --secondary-color: #2ecc71;
+    --secondary-color: #ff8c00;
+    --accent-color: #2ecc71;
     --background-color: #1a1a1a;
     --text-color: #f0f0f0;
     --card-bg: #2c2c2c;
-    --sidebar-bg: #1c2833;
+    --sidebar-bg: #001f4d;
     --sidebar-text: #ecf0f1;
   }
 
@@ -45,7 +47,7 @@
 
   .sidebar {
     width: 250px;
-    background-color: var(--sidebar-bg);
+    background: linear-gradient(to bottom, var(--sidebar-bg), #003366);
     color: var(--sidebar-text);
     padding: 20px;
     transition: all 0.3s;
@@ -76,7 +78,8 @@
   }
 
   .sidebar a:hover, .sidebar a.active {
-    background-color: rgba(255, 255, 255, 0.1);
+    background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
+    color: #fff;
   }
 
   .sidebar i {
@@ -93,14 +96,14 @@
   .card {
     background-color: var(--card-bg);
     border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08);
     margin-bottom: 20px;
-    transition: all 0.3s;
+    transition: all 0.3s ease;
   }
 
   .card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.08);
   }
 
   .card-header {
@@ -117,11 +120,14 @@
   .btn-primary {
     background-color: var(--primary-color);
     border-color: var(--primary-color);
+    transition: all 0.3s ease;
   }
 
   .btn-primary:hover {
-    background-color: darken(var(--primary-color), 10%);
-    border-color: darken(var(--primary-color), 10%);
+    background-color: #0066ff;
+    border-color: #0066ff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
   }
 
   .modal-header {
@@ -164,7 +170,7 @@
     position: fixed;
     top: 20px;
     right: 20px;
-    background-color: var(--primary-color);
+    background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
     color: white;
     padding: 15px;
     border-radius: 5px;
@@ -182,7 +188,7 @@
     position: fixed;
     bottom: 20px;
     right: 20px;
-    background-color: var(--primary-color);
+    background: linear-gradient(45deg, var(--primary-color), var(--accent-color));
     color: white;
     border: none;
     border-radius: 50%;
@@ -209,13 +215,15 @@
     border-radius: 8px;
     padding: 15px;
     text-align: center;
-    transition: all 0.3s;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
     cursor: pointer;
   }
 
   .pos-product-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+    border-color: var(--accent-color);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   }
 
   .pos-product-card img {
@@ -559,6 +567,108 @@
           </div>
         </div>
       </div>
+      <div v-if="currentView === 'billing'">
+        <h2>Sistema de Facturación</h2>
+        <div class="row">
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header">Generar Factura</div>
+              <div class="card-body">
+                <form @submit.prevent="generateInvoice">
+                  <div class="form-group">
+                    <label for="clientId">Cliente</label>
+                    <select v-model="newInvoice.clientId" class="form-control" required>
+                      <option v-for="client in clients" :key="client.id" :value="client.id">{{ client.name }}</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="serviceType">Tipo de Servicio</label>
+                    <select v-model="newInvoice.serviceType" class="form-control" required>
+                      <option value="membership">Membresía</option>
+                      <option value="personalTraining">Entrenamiento Personal</option>
+                      <option value="dailyPackage">Paquete Diario</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="amount">Monto</label>
+                    <input type="number" v-model="newInvoice.amount" class="form-control" required>
+                  </div>
+                  <button type="submit" class="btn btn-primary">Generar Factura</button>
+                </form>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="card">
+              <div class="card-header">Facturas Recientes</div>
+              <div class="card-body">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>Cliente</th>
+                      <th>Servicio</th>
+                      <th>Monto</th>
+                      <th>Fecha</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="invoice in recentInvoices" :key="invoice.id">
+                      <td>{{ invoice.clientName }}</td>
+                      <td>{{ invoice.serviceType }}</td>
+                      <td>{{ invoice.amount }} {{ formattedCurrency }}</td>
+                      <td>{{ formatDate(invoice.date) }}</td>
+                      <td>
+                        <button @click="viewInvoice(invoice.id)" class="btn btn-sm btn-info">
+                          <i class="fas fa-eye"></i>
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row mt-4">
+          <div class="col-md-12">
+            <div class="card">
+              <div class="card-header">Informe de Ventas</div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-4">
+                    <div class="card">
+                      <div class="card-body">
+                        <h5 class="card-title">Ventas Totales</h5>
+                        <p class="card-text">{{ totalSales }} {{ formattedCurrency }}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="card">
+                      <div class="card-body">
+                        <h5 class="card-title">Ventas del Mes</h5>
+                        <p class="card-text">{{ monthlySales }} {{ formattedCurrency }}</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="card">
+                      <div class="card-body">
+                        <h5 class="card-title">Paquetes Diarios Vendidos</h5>
+                        <p class="card-text">{{ dailyPackagesSold }}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="chart-container mt-4">
+                  <canvas id="salesChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="notification" :class="{ show: showNotification }">
       {{ notificationMessage }}
@@ -623,6 +733,11 @@
           price: '',
           stock: ''
         },
+        newInvoice: {
+          clientId: '',
+          serviceType: '',
+          amount: 0
+        },
         settings: {
           companyName: '',
           email: '',
@@ -631,6 +746,10 @@
           currency: 'EUR',
           reminderTime: 24
         },
+        recentInvoices: [],
+        totalSales: 0,
+        monthlySales: 0,
+        dailyPackagesSold: 0,
         calendar: null,
         todayAppointmentsCount: 0,
         activeClientsCount: 0,
@@ -648,7 +767,8 @@
           { name: 'Pagos', view: 'payments', icon: 'fas fa-credit-card' },
           { name: 'Paquetes', view: 'packages', icon: 'fas fa-box' },
           { name: 'Ventas de Suplementos', view: 'pos', icon: 'fas fa-cash-register' },
-          { name: 'Ajustes', view: 'settings', icon: 'fas fa-cog' }
+          { name: 'Ajustes', view: 'settings', icon: 'fas fa-cog' },
+          { name: 'Facturación', view: 'billing', icon: 'fas fa-file-invoice-dollar' }
         ],
         dashboardStats: [
           { title: 'Citas hoy', value: 0 },
@@ -689,6 +809,7 @@
             this.currentMonthRevenue = this.payments.filter(p => moment(p.date).isSame(moment(), 'month')).reduce((total, p) => total + p.amount, 0);
             this.expiredPackagesCount = this.clients.filter(c => moment(c.packageExpirationDate).isBefore(moment())).length;
             this.updateDashboardStats();
+            this.updateSalesReport();
           } catch (error) {
             console.error(error);
           }
@@ -724,6 +845,56 @@
           } catch (error) {
             console.error('Error creating product:', error);
           }
+        },
+        async generateInvoice() {
+          try {
+            const response = await axios.post('/api/invoices', this.newInvoice);
+            this.recentInvoices.unshift(response.data);
+            this.showNotificationMessage('Factura generada con éxito');
+            this.newInvoice = { clientId: '', serviceType: '', amount: 0 };
+            this.updateSalesReport();
+          } catch (error) {
+            console.error('Error generating invoice:', error);
+            this.showNotificationMessage('Error al generar la factura');
+          }
+        },
+        async viewInvoice(invoiceId) {
+          // Implement logic to view/print invoice
+        },
+        async updateSalesReport() {
+          try {
+            const response = await axios.get('/api/sales/report');
+            this.totalSales = response.data.totalSales;
+            this.monthlySales = response.data.monthlySales;
+            this.dailyPackagesSold = response.data.dailyPackagesSold;
+            this.updateSalesChart(response.data.salesData);
+          } catch (error) {
+            console.error('Error updating sales report:', error);
+          }
+        },
+        updateSalesChart(salesData) {
+          const ctx = document.getElementById('salesChart').getContext('2d');
+          new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: salesData.labels,
+              datasets: [{
+                label: 'Ventas Diarias',
+                data: salesData.data,
+                borderColor: 'rgba(52, 152, 219, 1)',
+                backgroundColor: 'rgba(52, 152, 219, 0.2)',
+                tension: 0.1
+              }]
+            },
+            options: {
+              responsive: true,
+              scales: {
+                y: {
+                  beginAtZero: true
+                }
+              }
+            }
+          });
         },
         async createAppointment() {
           // Implement creation logic here
