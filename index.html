@@ -507,6 +507,20 @@
                 </div>
               </div>
             </div>
+            <div class="row mt-4">
+              <div class="col-md-8">
+                <div class="card">
+                  <div class="card-header">Promociones</div>
+                  <div class="card-body">
+                    <div class="form-group">
+                      <label for="promoCode">Código promocional</label>
+                      <input type="text" class="form-control" id="promoCode" v-model="promoCode">
+                    </div>
+                    <button @click="applyPromoCode" class="btn btn-primary">Aplicar código</button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
           <div class="col-md-4">
             <div class="card">
@@ -522,6 +536,14 @@
                 </ul>
                 <div class="mt-3">
                   <strong>Total: {{ cartTotal }} {{ formattedCurrency }}</strong>
+                </div>
+                <div class="form-group mt-3">
+                  <label for="paymentMethod">Método de pago</label>
+                  <select v-model="paymentMethod" class="form-control" id="paymentMethod">
+                    <option value="cash">Efectivo</option>
+                    <option value="card">Tarjeta de crédito</option>
+                    <option value="transfer">Transferencia bancaria</option>
+                  </select>
                 </div>
                 <button @click="checkout" class="btn btn-success btn-block mt-3">Finalizar Compra</button>
               </div>
@@ -669,6 +691,55 @@
           </div>
         </div>
       </div>
+      <div v-if="currentView === 'promotions'">
+        <h2>Gestión de Códigos Promocionales</h2>
+        <div class="card">
+          <div class="card-body">
+            <form @submit.prevent="createPromoCode">
+              <div class="form-group">
+                <label for="promoCodeName">Nombre del código</label>
+                <input type="text" class="form-control" id="promoCodeName" v-model="newPromoCode.name" required>
+              </div>
+              <div class="form-group">
+                <label for="promoCodeDiscount">Descuento (%)</label>
+                <input type="number" class="form-control" id="promoCodeDiscount" v-model="newPromoCode.discount" required>
+              </div>
+              <div class="form-group">
+                <label for="promoCodeExpiration">Fecha de expiración</label>
+                <input type="date" class="form-control" id="promoCodeExpiration" v-model="newPromoCode.expiration" required>
+              </div>
+              <button type="submit" class="btn btn-primary">Crear Código Promocional</button>
+            </form>
+          </div>
+        </div>
+        <div class="card mt-4">
+          <div class="card-header">Códigos Promocionales Activos</div>
+          <div class="card-body">
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Descuento</th>
+                  <th>Expiración</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="promo in promoCodes" :key="promo.id">
+                  <td>{{ promo.name }}</td>
+                  <td>{{ promo.discount }}%</td>
+                  <td>{{ formatDate(promo.expiration) }}</td>
+                  <td>
+                    <button @click="deletePromoCode(promo.id)" class="btn btn-sm btn-danger">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="notification" :class="{ show: showNotification }">
       {{ notificationMessage }}
@@ -695,6 +766,8 @@
         packages: [],
         products: [],
         cart: [],
+        promoCode: '',
+        paymentMethod: 'cash',
         newAppointment: {
           clientId: '',
           coachId: '',
@@ -738,6 +811,12 @@
           serviceType: '',
           amount: 0
         },
+        newPromoCode: {
+          name: '',
+          discount: 0,
+          expiration: ''
+        },
+        promoCodes: [],
         settings: {
           companyName: '',
           email: '',
@@ -758,6 +837,12 @@
         darkMode: false,
         showNotification: false,
         notificationMessage: '',
+        dashboardStats: [
+          { title: 'Citas hoy', value: 0 },
+          { title: 'Clientes activos', value: 0 },
+          { title: 'Ingresos este mes', value: '0 €' },
+          { title: 'Paquetes expirados', value: 0 }
+        ],
         menuItems: [
           { name: 'Tablero', view: 'dashboard', icon: 'fas fa-tachometer-alt' },
           { name: 'Citas', view: 'appointments', icon: 'fas fa-calendar-plus' },
@@ -767,6 +852,7 @@
           { name: 'Pagos', view: 'payments', icon: 'fas fa-credit-card' },
           { name: 'Paquetes', view: 'packages', icon: 'fas fa-box' },
           { name: 'Ventas de Suplementos', view: 'pos', icon: 'fas fa-cash-register' },
+          { name: 'Promociones', view: 'promotions', icon: 'fas fa-tags' },
           { name: 'Ajustes', view: 'settings', icon: 'fas fa-cog' },
           { name: 'Facturación', view: 'billing', icon: 'fas fa-file-invoice-dollar' }
         ],
@@ -788,14 +874,15 @@
       methods: {
         async fetchData() {
           try {
-            const [appointmentsRes, coachesRes, clientsRes, paymentsRes, packagesRes, settingsRes, productsRes] = await Promise.all([
+            const [appointmentsRes, coachesRes, clientsRes, paymentsRes, packagesRes, settingsRes, productsRes, promoCodesRes] = await Promise.all([
               axios.get('/api/appointments'),
               axios.get('/api/coaches'),
               axios.get('/api/clients'),
               axios.get('/api/payments'),
               axios.get('/api/packages'),
               axios.get('/api/settings'),
-              axios.get('/api/products')
+              axios.get('/api/products'),
+              axios.get('/api/promo-codes')
             ]);
             this.appointments = appointmentsRes.data;
             this.coaches = coachesRes.data;
@@ -804,6 +891,7 @@
             this.packages = packagesRes.data;
             this.settings = settingsRes.data;
             this.products = productsRes.data;
+            this.promoCodes = promoCodesRes.data;
             this.todayAppointmentsCount = this.appointments.filter(a => moment(a.date).isSame(moment(), 'day')).length;
             this.activeClientsCount = this.clients.length;
             this.currentMonthRevenue = this.payments.filter(p => moment(p.date).isSame(moment(), 'month')).reduce((total, p) => total + p.amount, 0);
@@ -915,7 +1003,29 @@
           // Implement deletion logic here
         },
         async createClient() {
-          // Implement creation logic here
+          try {
+            const formData = new FormData();
+            formData.append('name', this.newClient.name);
+            formData.append('email', this.newClient.email);
+            formData.append('phone', this.newClient.phone);
+            formData.append('packageId', this.newClient.packageId);
+            if (this.clientPhoto) {
+              formData.append('photo', this.clientPhoto);
+            }
+            const response = await axios.post('/api/clients', formData, {
+              headers: {
+                'Content-Type': 'multipart/form-data'
+              }
+            });
+            this.clients.push(response.data);
+            this.showNewClientModal = false;
+            this.newClient = { name: '', email: '', phone: '', packageId: '' };
+            this.clientPhoto = null;
+            this.showNotificationMessage('Cliente creado con éxito');
+          } catch (error) {
+            console.error('Error creating client:', error);
+            this.showNotificationMessage('Error al crear el cliente');
+          }
         },
         async editClient(client) {
           // Implement editing logic here
@@ -946,19 +1056,43 @@
             const sale = {
               items: this.cart,
               total: this.cartTotal,
-              date: new Date().toISOString()
+              date: new Date().toISOString(),
+              paymentMethod: this.paymentMethod,
+              promoCode: this.promoCode
             };
             await axios.post('/api/sales', sale);
-            alert('Venta completada con éxito');
-            this.cart = [];
             this.showNotificationMessage('Venta completada con éxito');
+            this.cart = [];
+            this.paymentMethod = 'cash';
+            this.promoCode = '';
           } catch (error) {
             console.error('Error processing sale:', error);
-            alert('Error al procesar la venta');
+            this.showNotificationMessage('Error al procesar la venta');
           }
         },
-        async saveSettings() {
-          // Implement save logic here
+        async createPromoCode() {
+          try {
+            const response = await axios.post('/api/promo-codes', this.newPromoCode);
+            this.promoCodes.push(response.data);
+            this.newPromoCode = { name: '', discount: 0, expiration: '' };
+            this.showNotificationMessage('Código promocional creado con éxito');
+          } catch (error) {
+            console.error('Error creating promo code:', error);
+            this.showNotificationMessage('Error al crear el código promocional');
+          }
+        },
+        async deletePromoCode(id) {
+          try {
+            await axios.delete(`/api/promo-codes/${id}`);
+            this.promoCodes = this.promoCodes.filter(promo => promo.id !== id);
+            this.showNotificationMessage('Código promocional eliminado con éxito');
+          } catch (error) {
+            console.error('Error deleting promo code:', error);
+            this.showNotificationMessage('Error al eliminar el código promocional');
+          }
+        },
+        handlePhotoUpload(event) {
+          this.clientPhoto = event.target.files[0];
         },
         toggleDarkMode() {
           this.darkMode = !this.darkMode;
