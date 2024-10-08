@@ -11,32 +11,62 @@
 <script src="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.min.js"></script>
 <link href="https://cdn.jsdelivr.net/npm/fullcalendar@5.10.2/main.min.css" rel="stylesheet">
 <style>
-  body {
-    font-family: 'Arial', sans-serif;
-    background-color: #f8f9fa;
+  :root {
+    --primary-color: #3498db;
+    --secondary-color: #2ecc71;
+    --background-color: #f8f9fa;
+    --text-color: #333;
+    --card-bg: #fff;
+    --sidebar-bg: #2c3e50;
+    --sidebar-text: #ecf0f1;
   }
+
+  body.dark-mode {
+    --primary-color: #3498db;
+    --secondary-color: #2ecc71;
+    --background-color: #1a1a1a;
+    --text-color: #f0f0f0;
+    --card-bg: #2c2c2c;
+    --sidebar-bg: #1c2833;
+    --sidebar-text: #ecf0f1;
+  }
+
+  body {
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    transition: background-color 0.3s, color 0.3s;
+  }
+
   #app {
     display: flex;
     min-height: 100vh;
   }
+
   .sidebar {
     width: 250px;
-    background-color: #343a40;
-    color: white;
+    background-color: var(--sidebar-bg);
+    color: var(--sidebar-text);
     padding: 20px;
+    transition: all 0.3s;
   }
+
   .sidebar h2 {
     margin-bottom: 30px;
+    font-weight: 300;
   }
+
   .sidebar ul {
     list-style-type: none;
     padding: 0;
   }
+
   .sidebar li {
     margin-bottom: 15px;
   }
+
   .sidebar a {
-    color: white;
+    color: var(--sidebar-text);
     text-decoration: none;
     display: flex;
     align-items: center;
@@ -44,68 +74,154 @@
     border-radius: 5px;
     transition: background-color 0.3s;
   }
+
   .sidebar a:hover, .sidebar a.active {
-    background-color: #495057;
+    background-color: rgba(255, 255, 255, 0.1);
   }
+
   .sidebar i {
     margin-right: 10px;
     width: 20px;
   }
+
   .main-content {
     flex-grow: 1;
     padding: 20px;
     overflow-y: auto;
   }
+
   .card {
-    background-color: white;
+    background-color: var(--card-bg);
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     margin-bottom: 20px;
+    transition: all 0.3s;
   }
+
+  .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  }
+
   .card-header {
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #dee2e6;
+    background-color: var(--card-bg);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
     padding: 15px;
     font-weight: bold;
   }
+
   .card-body {
     padding: 20px;
   }
+
   .btn-primary {
-    background-color: #007bff;
-    border-color: #007bff;
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
   }
+
   .btn-primary:hover {
-    background-color: #0056b3;
-    border-color: #0056b3;
+    background-color: darken(var(--primary-color), 10%);
+    border-color: darken(var(--primary-color), 10%);
   }
+
   .modal-header {
-    background-color: #f8f9fa;
-    border-bottom: 1px solid #dee2e6;
+    background-color: var(--card-bg);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
   }
+
   .modal-footer {
-    background-color: #f8f9fa;
-    border-top: 1px solid #dee2e6;
+    background-color: var(--card-bg);
+    border-top: 1px solid rgba(0, 0, 0, 0.125);
   }
+
   .form-group {
     margin-bottom: 15px;
   }
+
   .table {
-    background-color: white;
+    background-color: var(--card-bg);
   }
+
   .table th {
-    background-color: #f8f9fa;
+    background-color: var(--background-color);
   }
+
   #calendar {
     height: 600px;
   }
+
   .fc-event {
     cursor: pointer;
   }
+
   .chart-container {
     position: relative;
     height: 300px;
     width: 100%;
+  }
+
+  .notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background-color: var(--primary-color);
+    color: white;
+    padding: 15px;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .notification.show {
+    opacity: 1;
+  }
+
+  .dark-mode-toggle {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s;
+  }
+
+  .dark-mode-toggle:hover {
+    transform: scale(1.1);
+  }
+
+  .pos-product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+  }
+
+  .pos-product-card {
+    background-color: var(--card-bg);
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+    transition: all 0.3s;
+    cursor: pointer;
+  }
+
+  .pos-product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+  }
+
+  .pos-product-card img {
+    max-width: 100%;
+    height: auto;
+    margin-bottom: 10px;
   }
 </style>
 </head>
@@ -114,51 +230,22 @@
     <div class="sidebar">
       <h2>CoachApp</h2>
       <ul>
-        <li><a href="#" @click.prevent="currentView = 'dashboard'" :class="{ active: currentView === 'dashboard' }"><i class="fas fa-tachometer-alt"></i> Tablero</a></li>
-        <li><a href="#" @click.prevent="currentView = 'appointments'" :class="{ active: currentView === 'appointments' }"><i class="fas fa-calendar-plus"></i> Citas</a></li>
-        <li><a href="#" @click.prevent="currentView = 'calendar'" :class="{ active: currentView === 'calendar' }"><i class="fas fa-calendar-alt"></i> Calendario</a></li>
-        <li><a href="#" @click.prevent="currentView = 'coaches'" :class="{ active: currentView === 'coaches' }"><i class="fas fa-user-tie"></i> Entrenadores</a></li>
-        <li><a href="#" @click.prevent="currentView = 'clients'" :class="{ active: currentView === 'clients' }"><i class="fas fa-users"></i> Clientes</a></li>
-        <li><a href="#" @click.prevent="currentView = 'payments'" :class="{ active: currentView === 'payments' }"><i class="fas fa-credit-card"></i> Pagos</a></li>
-        <li><a href="#" @click.prevent="currentView = 'packages'" :class="{ active: currentView === 'packages' }"><i class="fas fa-box"></i> Paquetes</a></li>
-        <li><a href="#" @click.prevent="currentView = 'pos'" :class="{ active: currentView === 'pos' }"><i class="fas fa-cash-register"></i> Ventas de Suplementos</a></li>
-        <li><a href="#" @click.prevent="currentView = 'settings'" :class="{ active: currentView === 'settings' }"><i class="fas fa-cog"></i> Ajustes</a></li>
+        <li v-for="(item, index) in menuItems" :key="index">
+          <a href="#" @click.prevent="currentView = item.view" :class="{ active: currentView === item.view }">
+            <i :class="item.icon"></i> {{ item.name }}
+          </a>
+        </li>
       </ul>
     </div>
     <div class="main-content">
-      <!-- Dashboard -->
       <div v-if="currentView === 'dashboard'">
         <h2>Tablero</h2>
         <div class="row">
-          <div class="col-md-3">
+          <div class="col-md-3" v-for="(stat, index) in dashboardStats" :key="index">
             <div class="card">
               <div class="card-body">
-                <h5 class="card-title">Citas hoy</h5>
-                <p class="card-text">{{ todayAppointmentsCount }}</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="card">
-              <div class="card-body">
-                <h5 class="card-title">Clientes activos</h5>
-                <p class="card-text">{{ activeClientsCount }}</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="card">
-              <div class="card-body">
-                <h5 class="card-title">Ingresos este mes</h5>
-                <p class="card-text">{{ currentMonthRevenue }} €</p>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="card">
-              <div class="card-body">
-                <h5 class="card-title">Paquetes expirados</h5>
-                <p class="card-text">{{ expiredPackagesCount }}</p>
+                <h5 class="card-title">{{ stat.title }}</h5>
+                <p class="card-text">{{ stat.value }}</p>
               </div>
             </div>
           </div>
@@ -190,8 +277,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Citas -->
       <div v-if="currentView === 'appointments'">
         <h2>Gestión de Citas</h2>
         <button @click="showNewAppointmentModal = true" class="btn btn-primary mb-3">
@@ -233,8 +318,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Calendario -->
       <div v-if="currentView === 'calendar'">
         <h2>Calendario</h2>
         <div class="card">
@@ -243,8 +326,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Entrenadores -->
       <div v-if="currentView === 'coaches'">
         <h2>Gestión de Entrenadores</h2>
         <button @click="showNewCoachModal = true" class="btn btn-primary mb-3">
@@ -282,8 +363,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Clientes -->
       <div v-if="currentView === 'clients'">
         <h2>Gestión de Clientes</h2>
         <button @click="showNewClientModal = true" class="btn btn-primary mb-3">
@@ -323,8 +402,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Pagos -->
       <div v-if="currentView === 'payments'">
         <h2>Gestión de Pagos</h2>
         <button @click="showNewPaymentModal = true" class="btn btn-primary mb-3">
@@ -364,8 +441,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Paquetes -->
       <div v-if="currentView === 'packages'">
         <h2>Gestión de Paquetes</h2>
         <button @click="showNewPackageModal = true" class="btn btn-primary mb-3">
@@ -403,8 +478,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Ventas de Suplementos -->
       <div v-if="currentView === 'pos'">
         <h2>Sistema de Punto de Venta - Suplementos</h2>
         <div class="row">
@@ -417,15 +490,11 @@
                 </button>
               </div>
               <div class="card-body">
-                <div class="row">
-                  <div v-for="product in products" :key="product.id" class="col-md-4 mb-3">
-                    <div class="card">
-                      <div class="card-body">
-                        <h5 class="card-title">{{ product.name }}</h5>
-                        <p class="card-text">{{ product.price }} {{ formattedCurrency }}</p>
-                        <button @click="addToCart(product)" class="btn btn-primary btn-sm">Agregar al carrito</button>
-                      </div>
-                    </div>
+                <div class="pos-product-grid">
+                  <div v-for="product in products" :key="product.id" class="pos-product-card" @click="addToCart(product)">
+                    <img :src="product.image" :alt="product.name">
+                    <h5>{{ product.name }}</h5>
+                    <p>{{ product.price }} {{ formattedCurrency }}</p>
                   </div>
                 </div>
               </div>
@@ -452,8 +521,6 @@
           </div>
         </div>
       </div>
-
-      <!-- Ajustes -->
       <div v-if="currentView === 'settings'">
         <h2>Ajustes</h2>
         <div class="card">
@@ -493,243 +560,13 @@
         </div>
       </div>
     </div>
-
-    <!-- Modals -->
-    <!-- Nuevo Cita Modal -->
-    <div class="modal fade" id="newAppointmentModal" tabindex="-1" v-if="showNewAppointmentModal">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Nueva Cita</h5>
-            <button type="button" class="close" @click="showNewAppointmentModal = false">
-              <span>&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            <form @submit.prevent="createAppointment">
-              <div class="form-group">
-                <label for="client">Cliente</label>
-                <select class="form-control" id="client" v-model="newAppointment.clientId" required>
-                  <option v-for="client in clients" :value="client.id">{{ client.name }}</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="coach">Entrenador</label>
-                <select class="form-control" id="coach" v-model="newAppointment.coachId" required>
-                  <option v-for="coach in coaches" :value="coach.id">{{ coach.name }}</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="date">Fecha</label>
-                <input type="date" class="form-control" id="date" v-model="newAppointment.date" required>
-              </div>
-              <div class="form-group">
-                <label for="time">Hora</label>
-                <input type="time" class="form-control" id="time" v-model="newAppointment.time" required>
-              </div>
-              <div class="form-group">
-                <label for="duration">Duración (minutos)</label>
-                <input type="number" class="form-control" id="duration" v-model="newAppointment.duration" required>
-              </div>
-              <div class="form-group">
-                <label for="type">Tipo</label>
-                <select class="form-control" id="type" v-model="newAppointment.type" required>
-                  <option value="presencial">Presencial</option>
-                  <option value="video">Videoconferencia</option>
-                  <option value="telefono">Teléfono</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="notes">Notas</label>
-                <textarea class="form-control" id="notes" v-model="newAppointment.notes"></textarea>
-              </div>
-              <button type="submit" class="btn btn-primary">Crear cita</button>
-            </form>
-          </div>
-        </div>
-      </div>
+    <div class="notification" :class="{ show: showNotification }">
+      {{ notificationMessage }}
     </div>
-
-    <!-- Nuevo Entrenador Modal -->
-    <div class="modal fade" id="newCoachModal" tabindex="-1" v-if="showNewCoachModal">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Nuevo Entrenador</h5>
-            <button type="button" class="close" @click="showNewCoachModal = false">
-              <span>&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            <form @submit.prevent="createCoach">
-              <div class="form-group">
-                <label for="coachName">Nombre</label>
-                <input type="text" class="form-control" id="coachName" v-model="newCoach.name" required>
-              </div>
-              <div class="form-group">
-                <label for="coachEmail">Correo electrónico</label>
-                <input type="email" class="form-control" id="coachEmail" v-model="newCoach.email" required>
-              </div>
-              <div class="form-group">
-                <label for="coachPhone">Teléfono</label>
-                <input type="tel" class="form-control" id="coachPhone" v-model="newCoach.phone" required>
-              </div>
-              <div class="form-group">
-                <label for="coachSpecialty">Especialidad</label>
-                <input type="text" class="form-control" id="coachSpecialty" v-model="newCoach.specialty" required>
-              </div>
-              <button type="submit" class="btn btn-primary">Crear entrenador</button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Nuevo Cliente Modal -->
-    <div class="modal fade" id="newClientModal" tabindex="-1" v-if="showNewClientModal">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Nuevo Cliente</h5>
-            <button type="button" class="close" @click="showNewClientModal = false">
-              <span>&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            <form @submit.prevent="createClient">
-              <div class="form-group">
-                <label for="clientName">Nombre</label>
-                <input type="text" class="form-control" id="clientName" v-model="newClient.name" required>
-              </div>
-              <div class="form-group">
-                <label for="clientEmail">Correo electrónico</label>
-                <input type="email" class="form-control" id="clientEmail" v-model="newClient.email" required>
-              </div>
-              <div class="form-group">
-                <label for="clientPhone">Teléfono</label>
-                <input type="tel" class="form-control" id="clientPhone" v-model="newClient.phone" required>
-              </div>
-              <div class="form-group">
-                <label for="clientPackage">Paquete</label>
-                <select class="form-control" id="clientPackage" v-model="newClient.packageId" required>
-                  <option v-for="package in packages" :value="package.id">{{ package.name }}</option>
-                </select>
-              </div>
-              <button type="submit" class="btn btn-primary">Crear cliente</button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Nuevo Pago Modal -->
-    <div class="modal fade" id="newPaymentModal" tabindex="-1" v-if="showNewPaymentModal">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Nuevo Pago</h5>
-            <button type="button" class="close" @click="showNewPaymentModal = false">
-              <span>&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            <form @submit.prevent="createPayment">
-              <div class="form-group">
-                <label for="paymentClient">Cliente</label>
-                <select class="form-control" id="paymentClient" v-model="newPayment.clientId" required>
-                  <option v-for="client in clients" :value="client.id">{{ client.name }}</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="paymentAmount">Total</label>
-                <input type="number" step="0.01" class="form-control" id="paymentAmount" v-model="newPayment.amount" required>
-              </div>
-              <div class="form-group">
-                <label for="paymentDate">Fecha</label>
-                <input type="date" class="form-control" id="paymentDate" v-model="newPayment.date" required>
-              </div>
-              <div class="form-group">
-                <label for="paymentMethod">Método</label>
-                <select class="form-control" id="paymentMethod" v-model="newPayment.method" required>
-                  <option value="tarjeta">Tarjeta de crédito</option>
-                  <option value="efectivo">Efectivo</option>
-                  <option value="transferencia">Transferencia bancaria</option>
-                </select>
-              </div>
-              <button type="submit" class="btn btn-primary">Crear pago</button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Nuevo Paquete Modal -->
-    <div class="modal fade" id="newPackageModal" tabindex="-1" v-if="showNewPackageModal">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Nuevo Paquete</h5>
-            <button type="button" class="close" @click="showNewPackageModal = false">
-              <span>&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            <form @submit.prevent="createPackage">
-              <div class="form-group">
-                <label for="packageName">Nombre</label>
-                <input type="text" class="form-control" id="packageName" v-model="newPackage.name" required>
-              </div>
-              <div class="form-group">
-                <label for="packageDescription">Descripción</label>
-                <textarea class="form-control" id="packageDescription" v-model="newPackage.description" required></textarea>
-              </div>
-              <div class="form-group">
-                <label for="packageDuration">Duración (días)</label>
-                <input type="number" class="form-control" id="packageDuration" v-model="newPackage.duration" required>
-              </div>
-              <div class="form-group">
-                <label for="packagePrice">Precio</label>
-                <input type="number" step="0.01" class="form-control" id="packagePrice" v-model="newPackage.price" required>
-              </div>
-              <button type="submit" class="btn btn-primary">Crear paquete</button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Nuevo Producto Modal -->
-    <div class="modal fade" id="newProductModal" tabindex="-1" v-if="showNewProductModal">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Nuevo Producto</h5>
-            <button type="button" class="close" @click="showNewProductModal = false">
-              <span>&times;</span>
-            </button>
-          </div>
-          <div class="modal-body">
-            <form @submit.prevent="createProduct">
-              <div class="form-group">
-                <label for="productName">Nombre</label>
-                <input type="text" class="form-control" id="productName" v-model="newProduct.name" required>
-              </div>
-              <div class="form-group">
-                <label for="productPrice">Precio</label>
-                <input type="number" step="0.01" class="form-control" id="productPrice" v-model="newProduct.price" required>
-              </div>
-              <div class="form-group">
-                <label for="productStock">Stock</label>
-                <input type="number" class="form-control" id="productStock" v-model="newProduct.stock" required>
-              </div>
-              <button type="submit" class="btn btn-primary">Crear Producto</button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
+    <button class="dark-mode-toggle" @click="toggleDarkMode">
+      <i :class="darkMode ? 'fas fa-sun' : 'fas fa-moon'"></i>
+    </button>
   </div>
-
   <script>
     new Vue({
       el: '#app',
@@ -798,7 +635,27 @@
         todayAppointmentsCount: 0,
         activeClientsCount: 0,
         currentMonthRevenue: 0,
-        expiredPackagesCount: 0
+        expiredPackagesCount: 0,
+        darkMode: false,
+        showNotification: false,
+        notificationMessage: '',
+        menuItems: [
+          { name: 'Tablero', view: 'dashboard', icon: 'fas fa-tachometer-alt' },
+          { name: 'Citas', view: 'appointments', icon: 'fas fa-calendar-plus' },
+          { name: 'Calendario', view: 'calendar', icon: 'fas fa-calendar-alt' },
+          { name: 'Entrenadores', view: 'coaches', icon: 'fas fa-user-tie' },
+          { name: 'Clientes', view: 'clients', icon: 'fas fa-users' },
+          { name: 'Pagos', view: 'payments', icon: 'fas fa-credit-card' },
+          { name: 'Paquetes', view: 'packages', icon: 'fas fa-box' },
+          { name: 'Ventas de Suplementos', view: 'pos', icon: 'fas fa-cash-register' },
+          { name: 'Ajustes', view: 'settings', icon: 'fas fa-cog' }
+        ],
+        dashboardStats: [
+          { title: 'Citas hoy', value: 0 },
+          { title: 'Clientes activos', value: 0 },
+          { title: 'Ingresos este mes', value: '0 €' },
+          { title: 'Paquetes expirados', value: 0 }
+        ]
       },
       computed: {
         formattedCurrency() {
@@ -831,6 +688,7 @@
             this.activeClientsCount = this.clients.length;
             this.currentMonthRevenue = this.payments.filter(p => moment(p.date).isSame(moment(), 'month')).reduce((total, p) => total + p.amount, 0);
             this.expiredPackagesCount = this.clients.filter(c => moment(c.packageExpirationDate).isBefore(moment())).length;
+            this.updateDashboardStats();
           } catch (error) {
             console.error(error);
           }
@@ -862,6 +720,7 @@
             this.products.push(response.data);
             this.showNewProductModal = false;
             this.newProduct = { name: '', price: '', stock: '' };
+            this.showNotificationMessage('Producto creado con éxito');
           } catch (error) {
             console.error('Error creating product:', error);
           }
@@ -921,6 +780,7 @@
             await axios.post('/api/sales', sale);
             alert('Venta completada con éxito');
             this.cart = [];
+            this.showNotificationMessage('Venta completada con éxito');
           } catch (error) {
             console.error('Error processing sale:', error);
             alert('Error al procesar la venta');
@@ -928,10 +788,82 @@
         },
         async saveSettings() {
           // Implement save logic here
+        },
+        toggleDarkMode() {
+          this.darkMode = !this.darkMode;
+          document.body.classList.toggle('dark-mode', this.darkMode);
+        },
+        showNotificationMessage(message) {
+          this.notificationMessage = message;
+          this.showNotification = true;
+          setTimeout(() => {
+            this.showNotification = false;
+          }, 3000);
+        },
+        updateDashboardStats() {
+          this.dashboardStats[0].value = this.todayAppointmentsCount;
+          this.dashboardStats[1].value = this.activeClientsCount;
+          this.dashboardStats[2].value = `${this.currentMonthRevenue} ${this.formattedCurrency}`;
+          this.dashboardStats[3].value = this.expiredPackagesCount;
         }
       },
       mounted() {
         this.fetchData();
+        this.$nextTick(() => {
+          this.initCharts();
+        });
+      },
+      watch: {
+        todayAppointmentsCount() { this.updateDashboardStats(); },
+        activeClientsCount() { this.updateDashboardStats(); },
+        currentMonthRevenue() { this.updateDashboardStats(); },
+        expiredPackagesCount() { this.updateDashboardStats(); }
+      },
+      initCharts() {
+        const appointmentsCtx = document.getElementById('appointmentsChart').getContext('2d');
+        new Chart(appointmentsCtx, {
+          type: 'bar',
+          data: {
+            labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+            datasets: [{
+              label: 'Citas por día',
+              data: [12, 19, 3, 5, 2, 3, 7],
+              backgroundColor: 'rgba(52, 152, 219, 0.6)',
+              borderColor: 'rgba(52, 152, 219, 1)',
+              borderWidth: 1
+            }]
+          },
+          options: {
+            scales: {
+              y: {
+                beginAtZero: true
+              }
+            }
+          }
+        });
+
+        const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+        new Chart(revenueCtx, {
+          type: 'line',
+          data: {
+            labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+            datasets: [{
+              label: 'Ingresos por mes',
+              data: [1200, 1900, 3000, 5000, 2000, 3000, 7000, 6000, 4000, 5000, 8000, 9000],
+              backgroundColor: 'rgba(46, 204, 113, 0.2)',
+              borderColor: 'rgba(46, 204, 113, 1)',
+              borderWidth: 2,
+              tension: 0.1
+            }]
+          },
+          options: {
+            scales: {
+              y: {
+                beginAtZero: true
+              }
+            }
+          }
+        });
       }
     });
   </script>
