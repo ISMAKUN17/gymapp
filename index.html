@@ -247,7 +247,7 @@
     </div>
     <div class="main-content">
       <div v-if="currentView === 'dashboard'">
-        <h2>Tablero</h2>
+        <h2>Tablero de Control</h2>
         <div class="row">
           <div class="col-md-3" v-for="(stat, index) in dashboardStats" :key="index">
             <div class="card">
@@ -262,24 +262,53 @@
           <div class="col-md-6">
             <div class="card">
               <div class="card-header">
-                Citas por día
+                Resumen de Ventas
               </div>
               <div class="card-body">
-                <div class="chart-container">
-                  <canvas id="appointmentsChart"></canvas>
-                </div>
+                <canvas id="salesSummaryChart"></canvas>
               </div>
             </div>
           </div>
           <div class="col-md-6">
             <div class="card">
               <div class="card-header">
-                Ingresos por mes
+                Flujo de Caja
               </div>
               <div class="card-body">
-                <div class="chart-container">
-                  <canvas id="revenueChart"></canvas>
-                </div>
+                <canvas id="cashFlowChart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="row mt-4">
+          <div class="col-md-12">
+            <div class="card">
+              <div class="card-header">
+                Inventario
+              </div>
+              <div class="card-body">
+                <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>Producto</th>
+                      <th>Stock Disponible</th>
+                      <th>Estado</th>
+                      <th>Acción</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="item in inventoryItems" :key="item.id">
+                      <td>{{ item.name }}</td>
+                      <td>{{ item.stock }}</td>
+                      <td>
+                        <span :class="getInventoryStatusClass(item)">{{ getInventoryStatus(item) }}</span>
+                      </td>
+                      <td>
+                        <button v-if="item.stock <= item.reorderPoint" @click="reorderItem(item)" class="btn btn-sm btn-warning">Reordenar</button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
           </div>
@@ -829,7 +858,16 @@
         totalSales: 0,
         monthlySales: 0,
         dailyPackagesSold: 0,
-        calendar: null,
+        inventoryItems: [],
+        salesSummary: {
+          labels: [],
+          data: []
+        },
+        cashFlow: {
+          labels: [],
+          income: [],
+          expenses: []
+        },
         todayAppointmentsCount: 0,
         activeClientsCount: 0,
         currentMonthRevenue: 0,
@@ -838,10 +876,11 @@
         showNotification: false,
         notificationMessage: '',
         dashboardStats: [
-          { title: 'Citas hoy', value: 0 },
-          { title: 'Clientes activos', value: 0 },
-          { title: 'Ingresos este mes', value: '0 €' },
-          { title: 'Paquetes expirados', value: 0 }
+          { title: 'Ventas Totales', value: '0 €' },
+          { title: 'Pagos Recibidos', value: '0 €' },
+          { title: 'Pagos Pendientes', value: '0 €' },
+          { title: 'Membresías Activas', value: 0 },
+          { title: 'Productos Bajos en Stock', value: 0 }
         ],
         menuItems: [
           { name: 'Tablero', view: 'dashboard', icon: 'fas fa-tachometer-alt' },
@@ -855,12 +894,6 @@
           { name: 'Promociones', view: 'promotions', icon: 'fas fa-tags' },
           { name: 'Ajustes', view: 'settings', icon: 'fas fa-cog' },
           { name: 'Facturación', view: 'billing', icon: 'fas fa-file-invoice-dollar' }
-        ],
-        dashboardStats: [
-          { title: 'Citas hoy', value: 0 },
-          { title: 'Clientes activos', value: 0 },
-          { title: 'Ingresos este mes', value: '0 €' },
-          { title: 'Paquetes expirados', value: 0 }
         ]
       },
       computed: {
@@ -900,6 +933,18 @@
             this.updateSalesReport();
           } catch (error) {
             console.error(error);
+          }
+        },
+        async fetchDashboardData() {
+          try {
+            const response = await axios.get('/api/dashboard');
+            this.updateDashboardStats(response.data);
+            this.inventoryItems = response.data.inventoryItems;
+            this.salesSummary = response.data.salesSummary;
+            this.cashFlow = response.data.cashFlow;
+            this.updateDashboardCharts();
+          } catch (error) {
+            console.error('Error fetching dashboard data:', error);
           }
         },
         formatDate(date) {
@@ -960,22 +1005,32 @@
             console.error('Error updating sales report:', error);
           }
         },
-        updateSalesChart(salesData) {
-          const ctx = document.getElementById('salesChart').getContext('2d');
+        updateDashboardStats(data) {
+          this.dashboardStats[0].value = `${data.totalSales} ${this.formattedCurrency}`;
+          this.dashboardStats[1].value = `${data.paymentsReceived} ${this.formattedCurrency}`;
+          this.dashboardStats[2].value = `${data.outstandingPayments} ${this.formattedCurrency}`;
+          this.dashboardStats[3].value = data.activeMemberships;
+          this.dashboardStats[4].value = data.lowStockItems;
+        },
+        updateDashboardCharts() {
+          this.updateSalesSummaryChart();
+          this.updateCashFlowChart();
+        },
+        updateSalesSummaryChart() {
+          const ctx = document.getElementById('salesSummaryChart').getContext('2d');
           new Chart(ctx, {
-            type: 'line',
+            type: 'bar',
             data: {
-              labels: salesData.labels,
+              labels: this.salesSummary.labels,
               datasets: [{
-                label: 'Ventas Diarias',
-                data: salesData.data,
+                label: 'Ventas',
+                data: this.salesSummary.data,
+                backgroundColor: 'rgba(52, 152, 219, 0.6)',
                 borderColor: 'rgba(52, 152, 219, 1)',
-                backgroundColor: 'rgba(52, 152, 219, 0.2)',
-                tension: 0.1
+                borderWidth: 1
               }]
             },
             options: {
-              responsive: true,
               scales: {
                 y: {
                   beginAtZero: true
@@ -984,115 +1039,61 @@
             }
           });
         },
-        async createAppointment() {
-          // Implement creation logic here
-        },
-        async editAppointment(appointment) {
-          // Implement editing logic here
-        },
-        async deleteAppointment(id) {
-          // Implement deletion logic here
-        },
-        async createCoach() {
-          // Implement creation logic here
-        },
-        async editCoach(coach) {
-          // Implement editing logic here
-        },
-        async deleteCoach(id) {
-          // Implement deletion logic here
-        },
-        async createClient() {
-          try {
-            const formData = new FormData();
-            formData.append('name', this.newClient.name);
-            formData.append('email', this.newClient.email);
-            formData.append('phone', this.newClient.phone);
-            formData.append('packageId', this.newClient.packageId);
-            if (this.clientPhoto) {
-              formData.append('photo', this.clientPhoto);
-            }
-            const response = await axios.post('/api/clients', formData, {
-              headers: {
-                'Content-Type': 'multipart/form-data'
+        updateCashFlowChart() {
+          const ctx = document.getElementById('cashFlowChart').getContext('2d');
+          new Chart(ctx, {
+            type: 'line',
+            data: {
+              labels: this.cashFlow.labels,
+              datasets: [{
+                label: 'Ingresos',
+                data: this.cashFlow.income,
+                borderColor: 'rgba(46, 204, 113, 1)',
+                backgroundColor: 'rgba(46, 204, 113, 0.2)',
+                tension: 0.1
+              }, {
+                label: 'Gastos',
+                data: this.cashFlow.expenses,
+                borderColor: 'rgba(231, 76, 60, 1)',
+                backgroundColor: 'rgba(231, 76, 60, 0.2)',
+                tension: 0.1
+              }]
+            },
+            options: {
+              scales: {
+                y: {
+                  beginAtZero: true
+                }
               }
-            });
-            this.clients.push(response.data);
-            this.showNewClientModal = false;
-            this.newClient = { name: '', email: '', phone: '', packageId: '' };
-            this.clientPhoto = null;
-            this.showNotificationMessage('Cliente creado con éxito');
-          } catch (error) {
-            console.error('Error creating client:', error);
-            this.showNotificationMessage('Error al crear el cliente');
+            }
+          });
+        },
+        getInventoryStatus(item) {
+          if (item.stock <= 0) return 'Agotado';
+          if (item.stock <= item.reorderPoint) return 'Bajo Stock';
+          if (item.expirationDate && moment(item.expirationDate).isBefore(moment())) return 'Expirado';
+          if (item.inTransit) return 'En Tránsito';
+          return 'En Stock';
+        },
+        getInventoryStatusClass(item) {
+          const status = this.getInventoryStatus(item);
+          switch (status) {
+            case 'Agotado': return 'text-danger';
+            case 'Bajo Stock': return 'text-warning';
+            case 'Expirado': return 'text-danger';
+            case 'En Tránsito': return 'text-info';
+            default: return 'text-success';
           }
         },
-        async editClient(client) {
-          // Implement editing logic here
-        },
-        async deleteClient(id) {
-          // Implement deletion logic here
-        },
-        async createPayment() {
-          // Implement creation logic here
-        },
-        async editPayment(payment) {
-          // Implement editing logic here
-        },
-        async deletePayment(id) {
-          // Implement deletion logic here
-        },
-        async createPackage() {
-          // Implement creation logic here
-        },
-        async editPackage(package) {
-          // Implement editing logic here
-        },
-        async deletePackage(id) {
-          // Implement deletion logic here
-        },
-        async checkout() {
+        async reorderItem(item) {
           try {
-            const sale = {
-              items: this.cart,
-              total: this.cartTotal,
-              date: new Date().toISOString(),
-              paymentMethod: this.paymentMethod,
-              promoCode: this.promoCode
-            };
-            await axios.post('/api/sales', sale);
-            this.showNotificationMessage('Venta completada con éxito');
-            this.cart = [];
-            this.paymentMethod = 'cash';
-            this.promoCode = '';
+            await axios.post('/api/inventory/reorder', { itemId: item.id });
+            this.showNotificationMessage(`Reorden iniciada para ${item.name}`);
+            this.fetchDashboardData();
           } catch (error) {
-            console.error('Error processing sale:', error);
-            this.showNotificationMessage('Error al procesar la venta');
+            console.error('Error reordering item:', error);
+            this.showNotificationMessage('Error al reordenar el producto');
           }
-        },
-        async createPromoCode() {
-          try {
-            const response = await axios.post('/api/promo-codes', this.newPromoCode);
-            this.promoCodes.push(response.data);
-            this.newPromoCode = { name: '', discount: 0, expiration: '' };
-            this.showNotificationMessage('Código promocional creado con éxito');
-          } catch (error) {
-            console.error('Error creating promo code:', error);
-            this.showNotificationMessage('Error al crear el código promocional');
-          }
-        },
-        async deletePromoCode(id) {
-          try {
-            await axios.delete(`/api/promo-codes/${id}`);
-            this.promoCodes = this.promoCodes.filter(promo => promo.id !== id);
-            this.showNotificationMessage('Código promocional eliminado con éxito');
-          } catch (error) {
-            console.error('Error deleting promo code:', error);
-            this.showNotificationMessage('Error al eliminar el código promocional');
-          }
-        },
-        handlePhotoUpload(event) {
-          this.clientPhoto = event.target.files[0];
         },
         toggleDarkMode() {
           this.darkMode = !this.darkMode;
@@ -1114,6 +1115,7 @@
       },
       mounted() {
         this.fetchData();
+        this.fetchDashboardData();
         this.$nextTick(() => {
           this.initCharts();
         });
