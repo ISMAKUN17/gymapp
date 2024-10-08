@@ -314,307 +314,41 @@
           </div>
         </div>
       </div>
-      <div v-if="currentView === 'appointments'">
-        <h2>Gestión de Citas</h2>
-        <button @click="showNewAppointmentModal = true" class="btn btn-primary mb-3">
-          <i class="fas fa-plus"></i> Nueva Cita
-        </button>
+      <div v-if="currentView === 'inventory'">
+        <h2>Gestión de Inventario</h2>
         <div class="card">
           <div class="card-body">
             <table class="table table-striped">
               <thead>
                 <tr>
-                  <th>Cliente</th>
-                  <th>Entrenador</th>
-                  <th>Fecha</th>
-                  <th>Hora</th>
-                  <th>Duración</th>
-                  <th>Tipo</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="appointment in appointments" :key="appointment.id">
-                  <td>{{ appointment.clientName }}</td>
-                  <td>{{ appointment.coachName }}</td>
-                  <td>{{ formatDate(appointment.date) }}</td>
-                  <td>{{ appointment.time }}</td>
-                  <td>{{ appointment.duration }} min</td>
-                  <td>{{ getAppointmentType(appointment.type) }}</td>
-                  <td>
-                    <button @click="editAppointment(appointment)" class="btn btn-sm btn-info mr-2">
-                      <i class="fas fa-edit"></i>
-                    </button>
-                    <button @click="deleteAppointment(appointment.id)" class="btn btn-sm btn-danger">
-                      <i class="fas fa-trash"></i>
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-      <div v-if="currentView === 'calendar'">
-        <h2>Calendario</h2>
-        <div class="card">
-          <div class="card-body">
-            <div id="calendar"></div>
-          </div>
-        </div>
-      </div>
-      <div v-if="currentView === 'coaches'">
-        <h2>Gestión de Entrenadores</h2>
-        <button @click="showNewCoachModal = true" class="btn btn-primary mb-3">
-          <i class="fas fa-plus"></i> Nuevo Entrenador
-        </button>
-        <div class="card">
-          <div class="card-body">
-            <table class="table table-striped">
-              <thead>
-                <tr>
-                  <th>Nombre</th>
-                  <th>Correo electrónico</th>
-                  <th>Teléfono</th>
-                  <th>Especialidad</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="coach in coaches" :key="coach.id">
-                  <td>{{ coach.name }}</td>
-                  <td>{{ coach.email }}</td>
-                  <td>{{ coach.phone }}</td>
-                  <td>{{ coach.specialty }}</td>
-                  <td>
-                    <button @click="editCoach(coach)" class="btn btn-sm btn-info mr-2">
-                      <i class="fas fa-edit"></i>
-                    </button>
-                    <button @click="deleteCoach(coach.id)" class="btn btn-sm btn-danger">
-                      <i class="fas fa-trash"></i>
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-      <div v-if="currentView === 'clients'">
-        <h2>Gestión de Clientes</h2>
-        <button @click="showNewClientModal = true" class="btn btn-primary mb-3">
-          <i class="fas fa-plus"></i> Nuevo Cliente
-        </button>
-        <div class="card">
-          <div class="card-body">
-            <table class="table table-striped">
-              <thead>
-                <tr>
-                  <th>Nombre</th>
-                  <th>Correo electrónico</th>
-                  <th>Teléfono</th>
-                  <th>Paquete actual</th>
-                  <th>Fecha de expiración</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="client in clients" :key="client.id">
-                  <td>{{ client.name }}</td>
-                  <td>{{ client.email }}</td>
-                  <td>{{ client.phone }}</td>
-                  <td>{{ client.currentPackage }}</td>
-                  <td>{{ formatDate(client.packageExpirationDate) }}</td>
-                  <td>
-                    <button @click="editClient(client)" class="btn btn-sm btn-info mr-2">
-                      <i class="fas fa-edit"></i>
-                    </button>
-                    <button @click="deleteClient(client.id)" class="btn btn-sm btn-danger">
-                      <i class="fas fa-trash"></i>
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-      <div v-if="currentView === 'payments'">
-        <h2>Gestión de Pagos</h2>
-        <button @click="showNewPaymentModal = true" class="btn btn-primary mb-3">
-          <i class="fas fa-plus"></i> Nuevo Pago
-        </button>
-        <div class="card">
-          <div class="card-body">
-            <table class="table table-striped">
-              <thead>
-                <tr>
-                  <th>Cliente</th>
-                  <th>Total</th>
-                  <th>Fecha</th>
-                  <th>Método</th>
+                  <th>Producto</th>
+                  <th>Stock Disponible</th>
+                  <th>Punto de Reorden</th>
+                  <th>Fecha de Expiración</th>
                   <th>Estado</th>
                   <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="payment in payments" :key="payment.id">
-                  <td>{{ payment.clientName }}</td>
-                  <td>{{ payment.amount }} €</td>
-                  <td>{{ formatDate(payment.date) }}</td>
-                  <td>{{ payment.method }}</td>
-                  <td>{{ payment.status }}</td>
+                <tr v-for="item in inventoryItems" :key="item.id">
+                  <td>{{ item.name }}</td>
+                  <td>{{ item.stock }}</td>
+                  <td>{{ item.reorderPoint }}</td>
+                  <td>{{ item.expirationDate ? formatDate(item.expirationDate) : 'N/A' }}</td>
                   <td>
-                    <button @click="editPayment(payment)" class="btn btn-sm btn-info mr-2">
+                    <span :class="getInventoryStatusClass(item)">{{ getInventoryStatus(item) }}</span>
+                  </td>
+                  <td>
+                    <button @click="editInventoryItem(item)" class="btn btn-sm btn-info mr-2">
                       <i class="fas fa-edit"></i>
                     </button>
-                    <button @click="deletePayment(payment.id)" class="btn btn-sm btn-danger">
-                      <i class="fas fa-trash"></i>
+                    <button v-if="item.stock <= item.reorderPoint" @click="reorderItem(item)" class="btn btn-sm btn-warning">
+                      Reordenar
                     </button>
                   </td>
                 </tr>
               </tbody>
             </table>
-          </div>
-        </div>
-      </div>
-      <div v-if="currentView === 'packages'">
-        <h2>Gestión de Paquetes</h2>
-        <button @click="showNewPackageModal = true" class="btn btn-primary mb-3">
-          <i class="fas fa-plus"></i> Nuevo Paquete
-        </button>
-        <div class="card">
-          <div class="card-body">
-            <table class="table table-striped">
-              <thead>
-                <tr>
-                  <th>Nombre</th>
-                  <th>Descripción</th>
-                  <th>Duración</th>
-                  <th>Precio</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="package in packages" :key="package.id">
-                  <td>{{ package.name }}</td>
-                  <td>{{ package.description }}</td>
-                  <td>{{ package.duration }} días</td>
-                  <td>{{ package.price }} €</td>
-                  <td>
-                    <button @click="editPackage(package)" class="btn btn-sm btn-info mr-2">
-                      <i class="fas fa-edit"></i>
-                    </button>
-                    <button @click="deletePackage(package.id)" class="btn btn-sm btn-danger">
-                      <i class="fas fa-trash"></i>
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-      <div v-if="currentView === 'pos'">
-        <h2>Sistema de Punto de Venta - Suplementos</h2>
-        <div class="row">
-          <div class="col-md-8">
-            <div class="card mb-3">
-              <div class="card-header">
-                Productos
-                <button @click="showNewProductModal = true" class="btn btn-primary btn-sm float-right">
-                  <i class="fas fa-plus"></i> Nuevo Producto
-                </button>
-              </div>
-              <div class="card-body">
-                <div class="pos-product-grid">
-                  <div v-for="product in products" :key="product.id" class="pos-product-card" @click="addToCart(product)">
-                    <img :src="product.image" :alt="product.name">
-                    <h5>{{ product.name }}</h5>
-                    <p>{{ product.price }} {{ formattedCurrency }}</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="row mt-4">
-              <div class="col-md-8">
-                <div class="card">
-                  <div class="card-header">Promociones</div>
-                  <div class="card-body">
-                    <div class="form-group">
-                      <label for="promoCode">Código promocional</label>
-                      <input type="text" class="form-control" id="promoCode" v-model="promoCode">
-                    </div>
-                    <button @click="applyPromoCode" class="btn btn-primary">Aplicar código</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="card">
-              <div class="card-header">Carrito</div>
-              <div class="card-body">
-                <ul class="list-group list-group-flush">
-                  <li v-for="(item, index) in cart" :key="index" class="list-group-item">
-                    {{ item.name }} - {{ item.price }} {{ formattedCurrency }}
-                    <button @click="removeFromCart(index)" class="btn btn-danger btn-sm float-right">
-                      <i class="fas fa-trash"></i>
-                    </button>
-                  </li>
-                </ul>
-                <div class="mt-3">
-                  <strong>Total: {{ cartTotal }} {{ formattedCurrency }}</strong>
-                </div>
-                <div class="form-group mt-3">
-                  <label for="paymentMethod">Método de pago</label>
-                  <select v-model="paymentMethod" class="form-control" id="paymentMethod">
-                    <option value="cash">Efectivo</option>
-                    <option value="card">Tarjeta de crédito</option>
-                    <option value="transfer">Transferencia bancaria</option>
-                  </select>
-                </div>
-                <button @click="checkout" class="btn btn-success btn-block mt-3">Finalizar Compra</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div v-if="currentView === 'settings'">
-        <h2>Ajustes</h2>
-        <div class="card">
-          <div class="card-body">
-            <form @submit.prevent="saveSettings">
-              <div class="form-group">
-                <label for="companyName">Nombre de la empresa</label>
-                <input type="text" class="form-control" id="companyName" v-model="settings.companyName">
-              </div>
-              <div class="form-group">
-                <label for="email">Correo electrónico</label>
-                <input type="email" class="form-control" id="email" v-model="settings.email">
-              </div>
-              <div class="form-group">
-                <label for="phone">Teléfono</label>
-                <input type="tel" class="form-control" id="phone" v-model="settings.phone">
-              </div>
-              <div class="form-group">
-                <label for="address">Dirección</label>
-                <textarea class="form-control" id="address" v-model="settings.address"></textarea>
-              </div>
-              <div class="form-group">
-                <label for="currency">Moneda</label>
-                <select class="form-control" id="currency" v-model="settings.currency">
-                  <option value="EUR">Euro (€)</option>
-                  <option value="USD">Dólar estadounidense ($)</option>
-                  <option value="GBP">Libra esterlina (£)</option>
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="reminderTime">Tiempo de recordatorio (horas)</label>
-                <input type="number" class="form-control" id="reminderTime" v-model="settings.reminderTime">
-              </div>
-              <button type="submit" class="btn btn-primary">Guardar ajustes</button>
-            </form>
           </div>
         </div>
       </div>
@@ -720,55 +454,6 @@
           </div>
         </div>
       </div>
-      <div v-if="currentView === 'promotions'">
-        <h2>Gestión de Códigos Promocionales</h2>
-        <div class="card">
-          <div class="card-body">
-            <form @submit.prevent="createPromoCode">
-              <div class="form-group">
-                <label for="promoCodeName">Nombre del código</label>
-                <input type="text" class="form-control" id="promoCodeName" v-model="newPromoCode.name" required>
-              </div>
-              <div class="form-group">
-                <label for="promoCodeDiscount">Descuento (%)</label>
-                <input type="number" class="form-control" id="promoCodeDiscount" v-model="newPromoCode.discount" required>
-              </div>
-              <div class="form-group">
-                <label for="promoCodeExpiration">Fecha de expiración</label>
-                <input type="date" class="form-control" id="promoCodeExpiration" v-model="newPromoCode.expiration" required>
-              </div>
-              <button type="submit" class="btn btn-primary">Crear Código Promocional</button>
-            </form>
-          </div>
-        </div>
-        <div class="card mt-4">
-          <div class="card-header">Códigos Promocionales Activos</div>
-          <div class="card-body">
-            <table class="table table-striped">
-              <thead>
-                <tr>
-                  <th>Nombre</th>
-                  <th>Descuento</th>
-                  <th>Expiración</th>
-                  <th>Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="promo in promoCodes" :key="promo.id">
-                  <td>{{ promo.name }}</td>
-                  <td>{{ promo.discount }}%</td>
-                  <td>{{ formatDate(promo.expiration) }}</td>
-                  <td>
-                    <button @click="deletePromoCode(promo.id)" class="btn btn-sm btn-danger">
-                      <i class="fas fa-trash"></i>
-                    </button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
     </div>
     <div class="notification" :class="{ show: showNotification }">
       {{ notificationMessage }}
@@ -845,20 +530,11 @@
           discount: 0,
           expiration: ''
         },
-        promoCodes: [],
-        settings: {
-          companyName: '',
-          email: '',
-          phone: '',
-          address: '',
-          currency: 'EUR',
-          reminderTime: 24
-        },
+        inventoryItems: [],
         recentInvoices: [],
         totalSales: 0,
         monthlySales: 0,
         dailyPackagesSold: 0,
-        inventoryItems: [],
         salesSummary: {
           labels: [],
           data: []
@@ -868,13 +544,14 @@
           income: [],
           expenses: []
         },
-        todayAppointmentsCount: 0,
-        activeClientsCount: 0,
-        currentMonthRevenue: 0,
-        expiredPackagesCount: 0,
-        darkMode: false,
-        showNotification: false,
-        notificationMessage: '',
+        settings: {
+          companyName: '',
+          email: '',
+          phone: '',
+          address: '',
+          currency: 'EUR',
+          reminderTime: 24
+        },
         dashboardStats: [
           { title: 'Ventas Totales', value: '0 €' },
           { title: 'Pagos Recibidos', value: '0 €' },
@@ -884,6 +561,7 @@
         ],
         menuItems: [
           { name: 'Tablero', view: 'dashboard', icon: 'fas fa-tachometer-alt' },
+          { name: 'Inventario', view: 'inventory', icon: 'fas fa-boxes' },
           { name: 'Citas', view: 'appointments', icon: 'fas fa-calendar-plus' },
           { name: 'Calendario', view: 'calendar', icon: 'fas fa-calendar-alt' },
           { name: 'Entrenadores', view: 'coaches', icon: 'fas fa-user-tie' },
@@ -891,9 +569,9 @@
           { name: 'Pagos', view: 'payments', icon: 'fas fa-credit-card' },
           { name: 'Paquetes', view: 'packages', icon: 'fas fa-box' },
           { name: 'Ventas de Suplementos', view: 'pos', icon: 'fas fa-cash-register' },
+          { name: 'Facturación', view: 'billing', icon: 'fas fa-file-invoice-dollar' },
           { name: 'Promociones', view: 'promotions', icon: 'fas fa-tags' },
-          { name: 'Ajustes', view: 'settings', icon: 'fas fa-cog' },
-          { name: 'Facturación', view: 'billing', icon: 'fas fa-file-invoice-dollar' }
+          { name: 'Ajustes', view: 'settings', icon: 'fas fa-cog' }
         ]
       },
       computed: {
@@ -924,7 +602,6 @@
             this.packages = packagesRes.data;
             this.settings = settingsRes.data;
             this.products = productsRes.data;
-            this.promoCodes = promoCodesRes.data;
             this.todayAppointmentsCount = this.appointments.filter(a => moment(a.date).isSame(moment(), 'day')).length;
             this.activeClientsCount = this.clients.length;
             this.currentMonthRevenue = this.payments.filter(p => moment(p.date).isSame(moment(), 'month')).reduce((total, p) => total + p.amount, 0);
@@ -967,17 +644,6 @@
         },
         removeFromCart(index) {
           this.cart.splice(index, 1);
-        },
-        async createProduct() {
-          try {
-            const response = await axios.post('/api/products', this.newProduct);
-            this.products.push(response.data);
-            this.showNewProductModal = false;
-            this.newProduct = { name: '', price: '', stock: '' };
-            this.showNotificationMessage('Producto creado con éxito');
-          } catch (error) {
-            console.error('Error creating product:', error);
-          }
         },
         async generateInvoice() {
           try {
@@ -1106,70 +772,12 @@
             this.showNotification = false;
           }, 3000);
         },
-        updateDashboardStats() {
-          this.dashboardStats[0].value = this.todayAppointmentsCount;
-          this.dashboardStats[1].value = this.activeClientsCount;
-          this.dashboardStats[2].value = `${this.currentMonthRevenue} ${this.formattedCurrency}`;
-          this.dashboardStats[3].value = this.expiredPackagesCount;
-        }
       },
       mounted() {
         this.fetchData();
         this.fetchDashboardData();
         this.$nextTick(() => {
           this.initCharts();
-        });
-      },
-      watch: {
-        todayAppointmentsCount() { this.updateDashboardStats(); },
-        activeClientsCount() { this.updateDashboardStats(); },
-        currentMonthRevenue() { this.updateDashboardStats(); },
-        expiredPackagesCount() { this.updateDashboardStats(); }
-      },
-      initCharts() {
-        const appointmentsCtx = document.getElementById('appointmentsChart').getContext('2d');
-        new Chart(appointmentsCtx, {
-          type: 'bar',
-          data: {
-            labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
-            datasets: [{
-              label: 'Citas por día',
-              data: [12, 19, 3, 5, 2, 3, 7],
-              backgroundColor: 'rgba(52, 152, 219, 0.6)',
-              borderColor: 'rgba(52, 152, 219, 1)',
-              borderWidth: 1
-            }]
-          },
-          options: {
-            scales: {
-              y: {
-                beginAtZero: true
-              }
-            }
-          }
-        });
-
-        const revenueCtx = document.getElementById('revenueChart').getContext('2d');
-        new Chart(revenueCtx, {
-          type: 'line',
-          data: {
-            labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
-            datasets: [{
-              label: 'Ingresos por mes',
-              data: [1200, 1900, 3000, 5000, 2000, 3000, 7000, 6000, 4000, 5000, 8000, 9000],
-              backgroundColor: 'rgba(46, 204, 113, 0.2)',
-              borderColor: 'rgba(46, 204, 113, 1)',
-              borderWidth: 2,
-              tension: 0.1
-            }]
-          },
-          options: {
-            scales: {
-              y: {
-                beginAtZero: true
-              }
-            }
-          }
         });
       }
     });
