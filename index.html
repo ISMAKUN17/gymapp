@@ -781,6 +781,150 @@
             font-size: 0.95rem;
         }
 
+        /* Indicador de Carga */
+        .loading-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        .loading-indicator.hidden {
+            display: none;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(102, 126, 234, 0.2);
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        .loading-indicator p {
+            color: #64748b;
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        .cabanas-grid.hidden {
+            display: none;
+        }
+
+        .retry-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .retry-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .retry-button.hidden {
+            display: none;
+        }
+
+        .loading-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .load-local-button {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .load-local-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .debug-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin: 15px 0;
+            flex-wrap: wrap;
+        }
+
+        .debug-button {
+            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .debug-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(139, 92, 246, 0.3);
+        }
+
+        .verify-firebase-button {
+            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .verify-firebase-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(6, 182, 212, 0.3);
+        }
+
+        .load-data-button {
+            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .load-data-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(245, 158, 11, 0.3);
+        }
+
         /* Responsive para notificaciones */
         @media (max-width: 768px) {
             .notification-content {
@@ -828,13 +972,40 @@
             </div>
         </div>
 
+        <!-- Indicador de Carga -->
+        <div id="loadingIndicator" class="loading-indicator">
+            <div class="loading-spinner"></div>
+            <p>Cargando sistema de cabañas...</p>
+            <div class="loading-actions">
+                <button id="retryButton" class="retry-button hidden">
+                    <i class="fas fa-redo mr-2"></i>Reintentar Conexión
+                </button>
+                <button id="loadLocalButton" class="load-local-button">
+                    <i class="fas fa-desktop mr-2"></i>Cargar Sistema Local
+                </button>
+            </div>
+        </div>
+
         <!-- Cuadrícula de cabañas -->
-        <div id="cabanasGrid" class="cabanas-grid">
+        <div id="cabanasGrid" class="cabanas-grid hidden">
             <!-- Los botones de las cabañas se generarán con JavaScript -->
         </div>
 
         <!-- Mensaje de estado -->
         <p id="statusMessage" class="status-message"></p>
+        
+        <!-- Botones de Debug y Verificación -->
+        <div class="debug-actions">
+            <button id="debugButton" class="debug-button" onclick="debugCabanas()">
+                <i class="fas fa-bug mr-2"></i>Debug Estado
+            </button>
+            <button id="verifyFirebaseButton" class="verify-firebase-button" onclick="verifyFirebaseConnection()">
+                <i class="fas fa-wifi mr-2"></i>Verificar Firebase
+            </button>
+            <button id="loadDataButton" class="load-data-button" onclick="forceLoadData()">
+                <i class="fas fa-download mr-2"></i>Cargar Datos
+            </button>
+        </div>
         
         <!-- Indicador de Estados -->
         <div class="status-indicator">
@@ -941,12 +1112,12 @@
 
     <!-- Script de JavaScript para la lógica de la aplicación -->
     <script type="module">
-        // Import Firebase SDKs
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue, off, push, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        // Firebase SDKs - Versión 9+ (compatible con tu configuración)
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getDatabase, ref, set, onValue, off, push, remove, get } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
-        // Firebase configuration
+        // Firebase configuration - Tu configuración exacta
         const firebaseConfig = {
             apiKey: "AIzaSyAd2bZmSEWzKMYoAn2p-chUstWWnGYMQig",
             authDomain: "secrets-e9d81.firebaseapp.com",
@@ -959,9 +1130,23 @@
         };
 
         // Initialize Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        const auth = getAuth(app);
+        let app, db, auth;
+        
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getDatabase(app);
+            auth = getAuth(app);
+            
+            console.log('✅ Firebase inicializado correctamente:', {
+                app: !!app,
+                db: !!db,
+                auth: !!auth,
+                config: firebaseConfig
+            });
+        } catch (error) {
+            console.error('❌ Error al inicializar Firebase:', error);
+            throw new Error(`Error de inicialización de Firebase: ${error.message}`);
+        }
 
         // Referencias a elementos del DOM
         const cabanasGrid = document.getElementById('cabanasGrid');
@@ -983,8 +1168,8 @@
 
         // Constantes del sistema
         const NUM_CABANAS = 16;
-        const TIMER_DURATION_MINUTES = 60;
-        const TIMER_DURATION_MS = TIMER_DURATION_MINUTES * 60 * 1000;
+        const TIMER_DURATION_MINUTES = 6;
+        const TIMER_DURATION_MS = TIMER_DURATION_MINUTES * 6 * 1000;
 
         // Variables para Firebase y gestión de datos
         let cabanas = [];
@@ -1065,6 +1250,47 @@
             }
         }
 
+        // Función para mostrar/ocultar el grid de cabañas
+        function showCabanasGrid() {
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const cabanasGrid = document.getElementById('cabanasGrid');
+            
+            if (loadingIndicator && cabanasGrid) {
+                loadingIndicator.classList.add('hidden');
+                cabanasGrid.classList.remove('hidden');
+                
+                // Debug: verificar estado de las cabañas
+                console.log('🔍 Estado final de las cabañas:');
+                for (let i = 1; i <= NUM_CABANAS; i++) {
+                    if (cabanas[i]) {
+                        console.log(`Cabaña ${i}:`, {
+                            status: cabanas[i].status,
+                            roomNumber: cabanas[i].roomNumber,
+                            startTime: cabanas[i].startTime,
+                            hasElement: !!cabanas[i].element,
+                            elementClasses: cabanas[i].element ? cabanas[i].element.className : 'N/A'
+                        });
+                    }
+                }
+            }
+        }
+
+        // Función para mostrar botón de reintentar
+        function showRetryButton() {
+            const retryButton = document.getElementById('retryButton');
+            if (retryButton) {
+                retryButton.classList.remove('hidden');
+            }
+        }
+
+        // Función para ocultar botón de reintentar
+        function hideRetryButton() {
+            const retryButton = document.getElementById('retryButton');
+            if (retryButton) {
+                retryButton.classList.add('hidden');
+            }
+        }
+
         // Función para actualizar el indicador de estado de conexión
         function updateConnectionStatus(status, message) {
             const connectionStatus = document.getElementById('connectionStatus');
@@ -1140,10 +1366,36 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
         // Función para inicializar Firebase y autenticación
         async function initializeFirebase() {
             try {
-                // Autenticación anónima
-                const userCredential = await signInAnonymously(auth);
+                console.log('🚀 Iniciando Firebase...');
+                
+                // Verificar que Firebase esté disponible
+                if (!auth || !db) {
+                    throw new Error('Firebase no está inicializado correctamente');
+                }
+                
+                // Timeout de seguridad para evitar carga infinita
+                const timeoutPromise = new Promise((_, reject) => {
+                    setTimeout(() => reject(new Error('Timeout: Firebase tardó demasiado en responder')), 3000);
+                });
+                
+                // Autenticación anónima con timeout
+                let userCredential;
+                try {
+                    userCredential = await Promise.race([
+                        signInAnonymously(auth),
+                        timeoutPromise
+                    ]);
+                } catch (authError) {
+                    console.error('❌ Error en autenticación:', authError);
+                    throw new Error(`Error de autenticación: ${authError.message}`);
+                }
+                
+                if (!userCredential || !userCredential.user) {
+                    throw new Error('No se pudo obtener credenciales de usuario');
+                }
+                
                 authUser = userCredential.user;
-                console.log('Usuario autenticado:', authUser.uid);
+                console.log('✅ Usuario autenticado:', authUser.uid);
                 
                 // Configurar referencias de Firebase
                 cabanasRef = ref(db, CABANAS_PATH);
@@ -1151,29 +1403,55 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
                 // Inicializar la interfaz de cabañas
                 initializeCabanas();
                 
-                // Cargar datos existentes
-                loadCabanasFromFirebase();
+                // IMPORTANTE: Marcar Firebase como listo ANTES de cargar datos
+                isFirebaseReady = true;
                 
                 // Configurar listener en tiempo real
                 setupRealtimeListener();
                 
-                isFirebaseReady = true;
-                statusMessage.textContent = '✅ Sistema conectado a Firebase. Datos sincronizados en tiempo real.';
+                // Cargar datos existentes con timeout
+                try {
+                    console.log('📥 Iniciando carga de datos...');
+                    console.log('🔥 isFirebaseReady establecido a:', isFirebaseReady);
+                    await Promise.race([
+                        loadCabanasFromFirebase(),
+                        timeoutPromise
+                    ]);
+                    console.log('✅ Datos cargados exitosamente');
+                } catch (timeoutError) {
+                    console.warn('⚠️ Timeout al cargar datos, continuando con estado por defecto');
+                    // Continuar con estado por defecto
+                }
+                
                 updateConnectionStatus('connected', 'Conectado a Firebase - Sincronización en tiempo real');
                 
+                console.log('🎉 Firebase inicializado correctamente');
+                
+                // Esperar un momento para asegurar que la UI se actualice
+                setTimeout(() => {
+                    console.log('🔄 Mostrando grid después de actualización de UI...');
+                    showCabanasGrid();
+                }, 500);
+                
             } catch (error) {
-                console.error('Error al inicializar Firebase:', error);
-                statusMessage.textContent = '❌ Error de conexión con Firebase. Verificando conexión...';
+                console.error('❌ Error al inicializar Firebase:', error);
+                statusMessage.textContent = `❌ Error de conexión con Firebase: ${error.message}. Usando modo local.`;
                 updateConnectionStatus('error', 'Error de conexión con Firebase');
                 
                 // Fallback: inicializar sin Firebase
                 initializeCabanas();
                 isFirebaseReady = false;
+                
+                // Mostrar grid inmediatamente en caso de error
+                showCabanasGrid();
             }
         }
 
         // Función para inicializar la interfaz y el estado de las cabañas
         function initializeCabanas() {
+            // Limpiar grid existente
+            cabanasGrid.innerHTML = '';
+            
             for (let i = 1; i <= NUM_CABANAS; i++) {
                 // Crea un objeto para el estado de la cabaña
                 cabanas[i] = {
@@ -1267,17 +1545,52 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
 
         // Función para cargar datos de cabañas desde Firebase
         async function loadCabanasFromFirebase() {
-            if (!isFirebaseReady) return;
+            console.log('🔍 === INICIO CARGA DE FIREBASE ===');
+            console.log('isFirebaseReady:', isFirebaseReady);
+            console.log('db:', !!db);
+            console.log('cabanasRef:', !!cabanasRef);
+            
+            if (!isFirebaseReady) {
+                console.warn('❌ Firebase no está listo, saltando carga');
+                return;
+            }
             
             try {
+                console.log('🔄 Cargando datos de Firebase...');
+                console.log('📍 Ruta de datos:', CABANAS_PATH);
+                console.log('🔗 Creando referencia:', ref(db, CABANAS_PATH));
+                
+                console.log('📡 Ejecutando get()...');
                 const snapshot = await get(ref(db, CABANAS_PATH));
+                console.log('📸 Snapshot recibido:', snapshot);
+                console.log('📊 Snapshot existe:', snapshot.exists());
+                console.log('📦 Snapshot val:', snapshot.val());
+                
                 if (snapshot.exists()) {
                     const data = snapshot.val();
+                    console.log('📊 Datos completos de Firebase:', data);
+                    console.log('🔢 Número de cabañas en Firebase:', Object.keys(data).length);
+                    
+                    // Contador de cabañas actualizadas
+                    let updatedCount = 0;
+                    let errorCount = 0;
+                    
+                    // Procesar cada cabaña encontrada en Firebase
                     Object.keys(data).forEach(cabinId => {
                         const cabinData = data[cabinId];
                         const cabinNumber = parseInt(cabinId);
                         
+                        console.log(`🏠 Procesando cabaña ${cabinNumber}:`, {
+                            rawData: cabinData,
+                            parsedNumber: cabinNumber,
+                            existsInArray: !!cabanas[cabinNumber]
+                        });
+                        
                         if (cabanas[cabinNumber]) {
+                            // Guardar estado anterior para comparación
+                            const previousStatus = cabanas[cabinNumber].status;
+                            const previousRoom = cabanas[cabinNumber].roomNumber;
+                            
                             // Actualizar estado de la cabaña
                             cabanas[cabinNumber].status = cabinData.status || 'available';
                             cabanas[cabinNumber].roomNumber = cabinData.roomNumber || null;
@@ -1285,18 +1598,60 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
                             cabanas[cabinNumber].lastUpdated = cabinData.lastUpdated || null;
                             cabanas[cabinNumber].updatedBy = cabinData.updatedBy || null;
                             
-                            // Actualizar UI
+                            console.log(`✅ Cabaña ${cabinNumber} actualizada:`, {
+                                previous: { status: previousStatus, room: previousRoom },
+                                current: { 
+                                    status: cabanas[cabinNumber].status, 
+                                    room: cabanas[cabinNumber].roomNumber 
+                                }
+                            });
+                            
+                            // Actualizar UI inmediatamente
                             updateCabinUI(cabinNumber);
                             
                             // Restaurar temporizador si está en estado 'out'
                             if (cabinData.status === 'out' && cabinData.startTime) {
+                                console.log(`⏰ Restaurando temporizador para cabaña ${cabinNumber}`);
                                 restoreTimer(cabinNumber, cabinData.roomNumber, cabinData.startTime);
                             }
+                            
+                            updatedCount++;
+                        } else {
+                            console.error(`❌ Cabaña ${cabinNumber} no encontrada en el array local`);
+                            errorCount++;
                         }
                     });
+                    
+                    console.log(`📈 Resumen de carga: ${updatedCount} actualizadas, ${errorCount} errores`);
+                    statusMessage.textContent = `✅ ${updatedCount} cabañas cargadas desde Firebase`;
+                    
+                    // Verificar que las cabañas se hayan actualizado correctamente
+                    setTimeout(() => {
+                        console.log('🔍 Verificación post-carga de cabañas:');
+                        for (let i = 1; i <= 5; i++) { // Solo verificar las primeras 5
+                            if (cabanas[i]) {
+                                console.log(`Cabaña ${i}:`, {
+                                    status: cabanas[i].status,
+                                    roomNumber: cabanas[i].roomNumber,
+                                    elementClasses: cabanas[i].element ? cabanas[i].element.className : 'N/A'
+                                });
+                            }
+                        }
+                    }, 1000);
+                    
+                } else {
+                    console.log('📭 No hay datos en Firebase, usando estado por defecto');
+                    statusMessage.textContent = '✅ Sistema inicializado. No hay datos previos en Firebase.';
                 }
+                
             } catch (error) {
-                console.error('Error al cargar datos de Firebase:', error);
+                console.error('❌ Error al cargar datos de Firebase:', error);
+                console.error('🔍 Detalles del error:', {
+                    message: error.message,
+                    code: error.code,
+                    stack: error.stack
+                });
+                statusMessage.textContent = '⚠️ Error al cargar datos de Firebase. Usando estado por defecto.';
             }
         }
 
@@ -1423,9 +1778,33 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
         // Función para actualizar la interfaz de una cabaña
         function updateCabinUI(cabinNumber) {
             const cabin = cabanas[cabinNumber];
+            if (!cabin || !cabin.element) {
+                console.warn(`⚠️ Cabaña ${cabinNumber} no encontrada o sin elemento`);
+                return;
+            }
+
             const cabinElement = cabin.element;
             const timerSpan = cabin.timerText;
             const roomNumberSpan = cabin.roomNumberElement;
+
+            console.log(`🔄 Actualizando UI de cabaña ${cabinNumber}:`, {
+                status: cabin.status,
+                roomNumber: cabin.roomNumber,
+                startTime: cabin.startTime,
+                elementExists: !!cabinElement,
+                timerSpanExists: !!timerSpan,
+                roomNumberSpanExists: !!roomNumberSpan
+            });
+
+            // Verificar que los elementos existan
+            if (!cabinElement || !timerSpan || !roomNumberSpan) {
+                console.error(`❌ Elementos faltantes para cabaña ${cabinNumber}:`, {
+                    element: !!cabinElement,
+                    timerSpan: !!timerSpan,
+                    roomNumberSpan: !!roomNumberSpan
+                });
+                return;
+            }
 
             // Remueve las clases de estado existentes
             cabinElement.classList.remove('available', 'occupied', 'out', 'expired');
@@ -1435,22 +1814,58 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
                 cabinElement.classList.add('available');
                 timerSpan.classList.remove('visible');
                 roomNumberSpan.classList.remove('visible');
+                roomNumberSpan.innerText = '';
+                timerSpan.innerText = '';
             } else if (cabin.status === 'occupied') {
                 cabinElement.classList.add('occupied');
                 timerSpan.classList.remove('visible');
                 roomNumberSpan.classList.add('visible');
+                roomNumberSpan.innerText = cabin.roomNumber || '';
+                timerSpan.innerText = '';
             } else if (cabin.status === 'out') {
                 cabinElement.classList.add('out');
                 timerSpan.classList.add('visible');
                 roomNumberSpan.classList.add('visible');
+                roomNumberSpan.innerText = cabin.roomNumber || '';
+                
+                // Calcular tiempo restante si hay startTime
+                if (cabin.startTime) {
+                    const elapsed = new Date().getTime() - new Date(cabin.startTime).getTime();
+                    const remaining = TIMER_DURATION_MS - elapsed;
+                    if (remaining > 0) {
+                        const minutes = Math.floor(remaining / 60000);
+                        const seconds = Math.floor((remaining % 60000) / 1000);
+                        timerSpan.innerText = `${minutes}m ${seconds}s`;
+                    } else {
+                        timerSpan.innerText = '0m 0s';
+                    }
+                }
             } else if (cabin.status === 'expired') {
                 cabinElement.classList.add('expired');
                 timerSpan.classList.remove('visible');
                 roomNumberSpan.classList.add('visible');
+                roomNumberSpan.innerText = cabin.roomNumber || '';
+                timerSpan.innerText = '';
             }
             
-            // Actualiza el texto del número de habitación
-            roomNumberSpan.innerText = cabin.roomNumber || '';
+            // Verificar que la actualización se haya aplicado correctamente
+            const finalClasses = cabinElement.className;
+            const finalRoomText = roomNumberSpan.innerText;
+            const finalTimerText = timerSpan.innerText;
+            
+            console.log(`✅ UI de cabaña ${cabinNumber} actualizada:`, {
+                classes: finalClasses,
+                roomNumberText: finalRoomText,
+                timerText: finalTimerText,
+                statusApplied: finalClasses.includes(cabin.status),
+                roomNumberVisible: finalRoomText !== '',
+                timerVisible: finalTimerText !== ''
+            });
+            
+            // Verificación adicional
+            if (!finalClasses.includes(cabin.status)) {
+                console.warn(`⚠️ Estado no aplicado correctamente para cabaña ${cabinNumber}`);
+            }
         }
         
         // Función para iniciar el temporizador de comida
@@ -1622,7 +2037,249 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
         checkNotificationPermission();
         
         // Mostrar mensaje de estado inicial
-        statusMessage.textContent = '🔄 Conectando con Firebase...';
+        statusMessage.textContent = '🔄 Conectando con Firebase... (máximo 10 segundos)';
+        
+        // Verificación de configuración de Firebase
+        console.log('🔍 Verificando configuración de Firebase...');
+        console.log('📋 Configuración:', {
+            apiKey: firebaseConfig.apiKey ? '✅ Configurado' : '❌ Faltante',
+            authDomain: firebaseConfig.authDomain ? '✅ Configurado' : '❌ Faltante',
+            databaseURL: firebaseConfig.databaseURL ? '✅ Configurado' : '❌ Faltante',
+            projectId: firebaseConfig.projectId ? '✅ Configurado' : '❌ Faltante'
+        });
+        
+        // Verificación de reglas de Firebase
+        console.log('⚠️ IMPORTANTE: Verifica que hayas aplicado las reglas de Firebase en tu consola');
+        console.log('📋 Reglas necesarias:');
+        console.log('1. Ve a console.firebase.google.com');
+        console.log('2. Selecciona tu proyecto: secrets-e9d81');
+        console.log('3. Ve a Realtime Database > Rules');
+        console.log('4. Aplica las reglas que te proporcioné anteriormente');
+
+        // Timeout de seguridad global para evitar carga infinita
+        setTimeout(() => {
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const cabanasGrid = document.getElementById('cabanasGrid');
+            
+            if (loadingIndicator && cabanasGrid.classList.contains('hidden')) {
+                console.warn('⚠️ Timeout global: Forzando mostrar grid sin reinicializar');
+                showCabanasGrid();
+                // NO reinicializar - esto resetea los datos de Firebase
+                statusMessage.textContent = '⚠️ Sistema mostrado con timeout. Verificando conexión...';
+            }
+        }, 5000); // 5 segundos máximo
+
+        // Timeout adicional más agresivo
+        setTimeout(() => {
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const cabanasGrid = document.getElementById('cabanasGrid');
+            
+            if (loadingIndicator && cabanasGrid.classList.contains('hidden')) {
+                console.warn('🚨 Timeout crítico: Forzando mostrar grid');
+                showCabanasGrid();
+                // NO reinicializar - esto resetea los datos de Firebase
+                statusMessage.textContent = '🚨 Sistema mostrado por timeout crítico. Verificando estado...';
+            }
+        }, 8000); // 8 segundos máximo
+
+        // Timeout final de emergencia
+        setTimeout(() => {
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const cabanasGrid = document.getElementById('cabanasGrid');
+            
+            if (loadingIndicator && cabanasGrid.classList.contains('hidden')) {
+                console.error('💥 Timeout de emergencia: Forzando mostrar sistema');
+                showCabanasGrid();
+                // NO reinicializar - esto resetea los datos de Firebase
+                statusMessage.textContent = '💥 Sistema mostrado por timeout de emergencia. Verificar configuración.';
+                updateConnectionStatus('error', 'Sistema en modo de emergencia');
+            }
+        }, 10000); // 10 segundos máximo
+
+        // Event listener para botón de reintentar
+        document.getElementById('retryButton').addEventListener('click', () => {
+            console.log('🔄 Reintentando conexión con Firebase...');
+            hideRetryButton();
+            statusMessage.textContent = '🔄 Reintentando conexión...';
+            updateConnectionStatus('connecting', 'Reintentando conexión...');
+            
+            // Reinicializar Firebase
+            setTimeout(() => {
+                initializeFirebase();
+            }, 1000);
+        });
+
+        // Event listener para botón de cargar sistema local
+        document.getElementById('loadLocalButton').addEventListener('click', () => {
+            console.log('🏠 Cargando sistema local...');
+            statusMessage.textContent = '🏠 Sistema local activado sin Firebase...';
+            updateConnectionStatus('error', 'Modo local activado');
+            
+            // Solo mostrar grid, no reinicializar si ya hay datos
+            if (cabanasGrid.children.length === 0) {
+                // Solo inicializar si el grid está vacío
+                initializeCabanas();
+            }
+            showCabanasGrid();
+            isFirebaseReady = false;
+        });
+
+        // Verificación automática de Firebase después de 2 segundos
+        setTimeout(() => {
+            if (!isFirebaseReady) {
+                console.warn('⚠️ Firebase no se inicializó en 2 segundos, verificando estado...');
+                const loadingIndicator = document.getElementById('loadingIndicator');
+                const cabanasGrid = document.getElementById('cabanasGrid');
+                
+                if (loadingIndicator && cabanasGrid.classList.contains('hidden')) {
+                    console.log('🔄 Forzando mostrar grid sin reinicializar...');
+                    showCabanasGrid();
+                    statusMessage.textContent = '⚠️ Sistema mostrado por verificación automática. Verificando Firebase...';
+                }
+            }
+        }, 2000);
+
+        // Función de debug para verificar estado de las cabañas
+        function debugCabanas() {
+            console.log('🔍 === DEBUG ESTADO DE CABAÑAS ===');
+            console.log('📊 Estado general:', {
+                isFirebaseReady,
+                totalCabanas: NUM_CABANAS,
+                cabanasArray: cabanas
+            });
+            
+            for (let i = 1; i <= NUM_CABANAS; i++) {
+                if (cabanas[i]) {
+                    const cabin = cabanas[i];
+                    console.log(`🏠 Cabaña ${i}:`, {
+                        status: cabin.status,
+                        roomNumber: cabin.roomNumber,
+                        startTime: cabin.startTime,
+                        lastUpdated: cabin.lastUpdated,
+                        hasElement: !!cabin.element,
+                        elementClasses: cabin.element ? cabin.element.className : 'N/A',
+                        roomNumberText: cabin.roomNumberElement ? cabin.roomNumberElement.innerText : 'N/A',
+                        timerText: cabin.timerText ? cabin.timerText.innerText : 'N/A'
+                    });
+                }
+            }
+            
+            // Verificar elementos del DOM
+            const cabanasGrid = document.getElementById('cabanasGrid');
+            console.log('📱 Estado del DOM:', {
+                gridVisible: !cabanasGrid.classList.contains('hidden'),
+                gridChildren: cabanasGrid ? cabanasGrid.children.length : 'N/A',
+                gridHTML: cabanasGrid ? cabanasGrid.innerHTML.substring(0, 200) + '...' : 'N/A'
+            });
+        }
+
+        // Función para forzar la carga de datos
+        async function forceLoadData() {
+            console.log('🔄 === FORZANDO CARGA DE DATOS ===');
+            console.log('Estado actual:', {
+                isFirebaseReady,
+                db: !!db,
+                auth: !!auth,
+                cabanasRef: !!cabanasRef,
+                authUser: !!authUser
+            });
+            
+            if (!db) {
+                console.error('❌ Base de datos no inicializada');
+                statusMessage.textContent = '❌ Base de datos no inicializada';
+                return;
+            }
+            
+            try {
+                // Forzar carga sin verificar isFirebaseReady
+                const snapshot = await get(ref(db, CABANAS_PATH));
+                console.log('📸 Snapshot forzado:', snapshot);
+                
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    console.log('📊 Datos forzados:', data);
+                    
+                    Object.keys(data).forEach(cabinId => {
+                        const cabinData = data[cabinId];
+                        const cabinNumber = parseInt(cabinId);
+                        
+                        if (cabanas[cabinNumber]) {
+                            cabanas[cabinNumber].status = cabinData.status || 'available';
+                            cabanas[cabinNumber].roomNumber = cabinData.roomNumber || null;
+                            cabanas[cabinNumber].startTime = cabinData.startTime || null;
+                            
+                            console.log(`🔄 Forzando actualización cabaña ${cabinNumber}:`, cabinData);
+                            updateCabinUI(cabinNumber);
+                        }
+                    });
+                    
+                    statusMessage.textContent = `✅ ${Object.keys(data).length} cabañas cargadas forzadamente`;
+                } else {
+                    console.log('📭 No hay datos en Firebase');
+                    statusMessage.textContent = '📭 No hay datos en Firebase';
+                }
+            } catch (error) {
+                console.error('❌ Error al forzar carga:', error);
+                statusMessage.textContent = `❌ Error: ${error.message}`;
+            }
+        }
+
+        // Función para verificar conexión con Firebase
+        async function verifyFirebaseConnection() {
+            console.log('🔍 === VERIFICACIÓN DE FIREBASE ===');
+            
+            try {
+                // Verificar inicialización
+                console.log('📋 Estado de Firebase:', {
+                    app: !!app,
+                    db: !!db,
+                    auth: !!auth,
+                    isFirebaseReady
+                });
+                
+                // Verificar autenticación
+                if (auth) {
+                    console.log('🔐 Estado de autenticación:', {
+                        currentUser: auth.currentUser ? auth.currentUser.uid : 'No autenticado',
+                        authState: 'Verificando...'
+                    });
+                    
+                    // Intentar autenticación anónima
+                    try {
+                        const userCredential = await signInAnonymously(auth);
+                        console.log('✅ Autenticación anónima exitosa:', userCredential.user.uid);
+                    } catch (authError) {
+                        console.error('❌ Error en autenticación anónima:', authError);
+                    }
+                }
+                
+                // Verificar base de datos
+                if (db) {
+                    console.log('🗄️ Estado de base de datos:', {
+                        databaseURL: firebaseConfig.databaseURL,
+                        cabanasRef: !!cabanasRef
+                    });
+                    
+                    // Intentar lectura de prueba
+                    try {
+                        const testRef = ref(db, 'test');
+                        console.log('✅ Referencia de base de datos creada correctamente');
+                    } catch (dbError) {
+                        console.error('❌ Error al crear referencia de BD:', dbError);
+                    }
+                }
+                
+                // Verificar reglas
+                console.log('⚠️ VERIFICACIÓN DE REGLAS:');
+                console.log('1. Ve a console.firebase.google.com');
+                console.log('2. Proyecto: secrets-e9d81');
+                console.log('3. Realtime Database > Rules');
+                console.log('4. Aplica las reglas que te di anteriormente');
+                
+            } catch (error) {
+                console.error('❌ Error en verificación de Firebase:', error);
+            }
+        }
 
         // Agregar animaciones al cargar la página
         window.addEventListener('load', () => {
