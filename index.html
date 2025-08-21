@@ -1169,7 +1169,7 @@
         // Constantes del sistema
         const NUM_CABANAS = 16;
         const TIMER_DURATION_MINUTES = 6;
-        const TIMER_DURATION_MS = TIMER_DURATION_MINUTES * 6 * 1000;
+        const TIMER_DURATION_MS = TIMER_DURATION_MINUTES * 60 * 1000;
 
         // Variables para Firebase y gestión de datos
         let cabanas = [];
@@ -1457,6 +1457,7 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
                 cabanas[i] = {
                     id: i,
                     timerId: null,
+                    countdownInterval: null, // Para el intervalo del countdown
                     status: 'available', // 'available', 'occupied', 'out', 'expired'
                     startTime: null,
                     element: null,
@@ -1699,6 +1700,7 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
                 delete dataToSave.timerText;
                 delete dataToSave.roomNumberElement;
                 delete dataToSave.timerId;
+                delete dataToSave.countdownInterval;
                 
                 await set(cabinRef, dataToSave);
                 
@@ -1755,9 +1757,10 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
                 }, remaining);
                 
                 // Configurar countdown
-                const countdownInterval = setInterval(() => {
+                cabin.countdownInterval = setInterval(() => {
                     if (cabin.status !== 'out') {
-                        clearInterval(countdownInterval);
+                        clearInterval(cabin.countdownInterval);
+                        cabin.countdownInterval = null;
                         return;
                     }
                     const currentElapsed = new Date().getTime() - cabin.startTime;
@@ -1894,11 +1897,19 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
                 saveCabinToFirebase(cabinNumber, { status: 'expired' });
                 showNotification(`¡Tiempo Expirado! Cabaña ${cabinNumber}`, `La cabaña de la Habitación ${roomNumber} ha excedido el tiempo de break.`);
                 statusMessage.textContent = `¡El tiempo para la Cabaña ${cabinNumber} (Habitación ${roomNumber}) ha expirado!`;
+                
+                // Limpiar el intervalo del countdown cuando expire
+                if (cabin.countdownInterval) {
+                    clearInterval(cabin.countdownInterval);
+                    cabin.countdownInterval = null;
+                }
             }, TIMER_DURATION_MS);
             
-            const countdownInterval = setInterval(() => {
+            // Guardar la referencia del intervalo para poder limpiarlo después
+            cabin.countdownInterval = setInterval(() => {
                 if (cabin.status !== 'out') {
-                    clearInterval(countdownInterval);
+                    clearInterval(cabin.countdownInterval);
+                    cabin.countdownInterval = null;
                     return;
                 }
                 const elapsed = new Date().getTime() - cabin.startTime;
@@ -1915,9 +1926,16 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
         function unassignCabin(cabinNumber) {
             const cabin = cabanas[cabinNumber];
             
+            // Limpiar TODOS los temporizadores
             if (cabin.timerId) {
                 clearTimeout(cabin.timerId);
                 cabin.timerId = null;
+            }
+            
+            // Limpiar el intervalo del countdown si existe
+            if (cabin.countdownInterval) {
+                clearInterval(cabin.countdownInterval);
+                cabin.countdownInterval = null;
             }
 
             cabin.status = 'available';
@@ -1939,9 +1957,16 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
         function endBreak(cabinNumber) {
             const cabin = cabanas[cabinNumber];
 
+            // Limpiar TODOS los temporizadores
             if (cabin.timerId) {
                 clearTimeout(cabin.timerId);
                 cabin.timerId = null;
+            }
+            
+            // Limpiar el intervalo del countdown si existe
+            if (cabin.countdownInterval) {
+                clearInterval(cabin.countdownInterval);
+                cabin.countdownInterval = null;
             }
 
             cabin.status = 'occupied';
