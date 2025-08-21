@@ -1831,17 +1831,27 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
                 roomNumberSpan.classList.add('visible');
                 roomNumberSpan.innerText = cabin.roomNumber || '';
                 
-                // Calcular tiempo restante si hay startTime
-                if (cabin.startTime) {
-                    const elapsed = new Date().getTime() - new Date(cabin.startTime).getTime();
-                    const remaining = TIMER_DURATION_MS - elapsed;
-                    if (remaining > 0) {
-                        const minutes = Math.floor(remaining / 60000);
-                        const seconds = Math.floor((remaining % 60000) / 1000);
-                        timerSpan.innerText = `${minutes}m ${seconds}s`;
+                // NO sobrescribir el timer si ya tiene contenido (evita que se resetee)
+                if (!timerSpan.innerText || timerSpan.innerText === '') {
+                    console.log(`🔄 Timer vacío para cabaña ${cabinNumber}, calculando tiempo...`);
+                    // Solo calcular tiempo si no hay texto ya establecido
+                    if (cabin.startTime) {
+                        const elapsed = new Date().getTime() - new Date(cabin.startTime).getTime();
+                        const remaining = TIMER_DURATION_MS - elapsed;
+                        if (remaining > 0) {
+                            const minutes = Math.floor(remaining / 60000);
+                            const seconds = Math.floor((remaining % 60000) / 1000);
+                            timerSpan.innerText = `${minutes}m ${seconds}s`;
+                            console.log(`⏰ Timer calculado: ${minutes}m ${seconds}s`);
+                        } else {
+                            timerSpan.innerText = '0m 0s';
+                            console.log(`⏰ Timer expirado: 0m 0s`);
+                        }
                     } else {
-                        timerSpan.innerText = '0m 0s';
+                        console.log(`⚠️ No hay startTime para cabaña ${cabinNumber}`);
                     }
+                } else {
+                    console.log(`✅ Timer preservado para cabaña ${cabinNumber}: ${timerSpan.innerText}`);
                 }
             } else if (cabin.status === 'expired') {
                 cabinElement.classList.add('expired');
@@ -1883,6 +1893,24 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
             cabin.status = 'out';
             cabin.startTime = new Date().getTime();
             cabin.roomNumber = roomNumber;
+            
+            // MOSTRAR TIEMPO INMEDIATAMENTE antes de actualizar UI
+            console.log(`🔍 Debug cabaña ${cabinNumber}:`, {
+                timerText: !!cabin.timerText,
+                timerTextElement: cabin.timerText,
+                timerTextContent: cabin.timerText ? cabin.timerText.textContent : 'N/A',
+                TIMER_DURATION_MS: TIMER_DURATION_MS
+            });
+            
+            if (cabin.timerText) {
+                const initialMinutes = Math.floor(TIMER_DURATION_MS / 60000);
+                const initialSeconds = Math.floor((TIMER_DURATION_MS % 60000) / 1000);
+                cabin.timerText.textContent = `${initialMinutes}m ${initialSeconds}s`;
+                console.log(`⏰ Timer inicial establecido: ${initialMinutes}m ${initialSeconds}s`);
+            } else {
+                console.error(`❌ Timer text no encontrado para cabaña ${cabinNumber}`);
+            }
+            
             updateCabinUI(cabinNumber);
 
             // Guardar en Firebase
@@ -1912,11 +1940,16 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
                     cabin.countdownInterval = null;
                     return;
                 }
-                const elapsed = new Date().getTime() - cabin.startTime;
-                const remaining = TIMER_DURATION_MS - elapsed;
-                const minutes = Math.floor(remaining / 60000);
-                const seconds = Math.floor((remaining % 60000) / 1000);
-                cabin.timerText.textContent = `${minutes}m ${seconds}s`;
+                
+                if (cabin.timerText && cabin.startTime) {
+                    const elapsed = new Date().getTime() - cabin.startTime;
+                    const remaining = TIMER_DURATION_MS - elapsed;
+                    const minutes = Math.floor(remaining / 60000);
+                    const seconds = Math.floor((remaining % 60000) / 1000);
+                    cabin.timerText.textContent = `${minutes}m ${seconds}s`;
+                } else {
+                    console.error(`❌ Timer text o startTime no encontrado para cabaña ${cabinNumber}`);
+                }
             }, 1000);
 
             statusMessage.textContent = `Temporizador iniciado para la Cabaña ${cabinNumber} (Habitación ${roomNumber}). Tiempo: ${TIMER_DURATION_MINUTES} minutos.`;
@@ -2032,9 +2065,12 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
                 
                 window.open(whatsappUrl, '_blank');
                 
-                // Desocupa la cabaña después de abrir la ventana de WhatsApp
+                // IMPORTANTE: Desocupar la cabaña inmediatamente después de retirar pertenencias
                 unassignCabin(currentCabinNumber);
                 hideModal();
+                
+                // Mostrar mensaje de confirmación
+                statusMessage.textContent = `✅ Cabaña ${currentCabinNumber} desocupada después de retirar pertenencias de la Habitación ${cabin.roomNumber}.`;
             }
         });
 
