@@ -3,16 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Administrativo - Sistema de Cabañas</title>
-    <!-- Tailwind CSS -->
+    <title>Sistema de Gestión de Cabañas</title>
+    <!-- Incluye Tailwind CSS desde un CDN para un estilo moderno y responsivo -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    
     <style>
         * {
             margin: 0;
@@ -24,615 +19,1057 @@
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
             color: #1e293b;
         }
 
-        .admin-container {
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        .main-container {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
-            border-radius: 20px;
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-            margin: 20px;
-            padding: 30px;
-            min-height: calc(100vh - 40px);
+            border-radius: 30px;
+            box-shadow: 
+                0 25px 50px rgba(0, 0, 0, 0.15),
+                0 0 0 1px rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            position: relative;
+            transform: translateY(0);
+            transition: all 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            margin: 40px auto;
+            padding: 50px;
+            max-width: 1200px;
+            width: 95%;
         }
 
-        .dashboard-header {
-            text-align: center;
-            margin-bottom: 40px;
+        .main-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 
+                0 35px 70px rgba(0, 0, 0, 0.2),
+                0 0 0 1px rgba(255, 255, 255, 0.3);
         }
 
-        .dashboard-title {
-            font-size: 2.5rem;
-            font-weight: 800;
+        .system-title {
             background: linear-gradient(135deg, #1e293b 0%, #475569 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            margin-bottom: 10px;
+            font-size: 3rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
         }
 
-        .stats-grid {
+        .system-title::after {
+            content: '';
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 4px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 2px;
+        }
+
+        .cabanas-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
             gap: 20px;
             margin-bottom: 40px;
         }
 
-        .stat-card {
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            border-radius: 15px;
-            padding: 25px;
-            text-align: center;
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-            transition: all 0.3s ease;
+        .cabin-item {
+            position: relative;
+            height: 140px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border: 2px solid transparent;
         }
 
-        .stat-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        .cabin-item::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%);
+            opacity: 0;
+            transition: opacity 0.3s ease;
         }
 
-        .stat-value {
+        .cabin-item:hover::before {
+            opacity: 1;
+        }
+
+        .cabin-item:hover {
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .cabin-item.available {
+            background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+            color: white;
+        }
+
+        .cabin-item.occupied {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border-color: #10b981;
+        }
+
+        .cabin-item.out {
+            background: linear-gradient(135deg, #facc15 0%, #eab308 100%);
+            color: #1e293b;
+            border-color: #facc15;
+        }
+
+        .cabin-item.expired {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            border-color: #ef4444;
+        }
+
+        .cabin-number {
             font-size: 2.5rem;
             font-weight: 800;
-            color: #1e293b;
-            margin-bottom: 10px;
+            z-index: 2;
+            position: relative;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
         }
 
-        .stat-label {
-            font-size: 1rem;
-            color: #64748b;
+        .room-number {
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            font-size: 0.9rem;
             font-weight: 600;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 2;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 4px 8px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
         }
 
-        .tabs-container {
-            background: #f8fafc;
-            border-radius: 15px;
+        .room-number.visible {
+            opacity: 1;
+        }
+
+        .timer-text {
+            position: absolute;
+            bottom: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            opacity: 0;
+            transition: all 0.3s ease;
+            z-index: 2;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 4px 8px;
+            border-radius: 8px;
+            backdrop-filter: blur(10px);
+        }
+
+        .timer-text.visible {
+            opacity: 1;
+        }
+
+        .status-message {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
             padding: 20px;
+            border-radius: 20px;
+            text-align: center;
+            font-weight: 600;
+            color: #475569;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            transition: all 0.4s ease;
+            margin-top: 20px;
+        }
+
+        .status-message:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-overlay {
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .modal-overlay.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 40px;
+            width: 90%;
+            max-width: 450px;
+            transform: translateY(-50px) scale(0.9);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .modal-overlay.visible .modal-content {
+            transform: translateY(0) scale(1);
+        }
+
+        .modal-content::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             margin-bottom: 30px;
         }
 
-        .tabs-nav {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
+        .modal-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #1e293b;
         }
 
-        .tab-button {
-            padding: 12px 24px;
+        .close-button {
+            background: rgba(0, 0, 0, 0.1);
             border: none;
-            border-radius: 10px;
-            background: #e2e8f0;
             color: #64748b;
-            font-weight: 600;
+            font-size: 1.5rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
             cursor: pointer;
             transition: all 0.3s ease;
-        }
-
-        .tab-button.active {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .tab-button:hover {
-            transform: translateY(-2px);
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-        
-        /* Asegurar que las pestañas ocultas estén realmente ocultas */
-        .tab-content.hidden {
-            display: none !important;
-        }
-        
-        /* Asegurar que las pestañas activas estén visibles */
-        .tab-content:not(.hidden) {
-            display: block !important;
-        }
-
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            background: white;
-            border-radius: 10px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .data-table th {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-        }
-
-        .data-table td {
-            padding: 12px 15px;
-            border-bottom: 1px solid #e2e8f0;
-        }
-
-        .data-table tr:hover {
-            background: #f8fafc;
-        }
-
-        .status-badge {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-
-        .status-available { background: #dcfce7; color: #166534; }
-        .status-occupied { background: #dbeafe; color: #1e40af; }
-        .status-out { background: #fef3c7; color: #92400e; }
-        .status-expired { background: #fee2e2; color: #991b1b; }
-
-        .filters-section {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .filter-row {
             display: flex;
-            gap: 15px;
             align-items: center;
-            flex-wrap: wrap;
-            margin-bottom: 15px;
+            justify-content: center;
         }
 
-        .filter-input {
-            padding: 10px 15px;
+        .close-button:hover {
+            background: rgba(0, 0, 0, 0.2);
+            color: #1e293b;
+            transform: rotate(90deg);
+        }
+
+        .modal-section {
+            margin-bottom: 25px;
+        }
+
+        .modal-section p {
+            text-align: center;
+            color: #64748b;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+        }
+
+        .input-field {
+            width: 100%;
+            padding: 18px 20px;
             border: 2px solid #e2e8f0;
-            border-radius: 8px;
-            font-size: 0.95rem;
-            transition: border-color 0.3s ease;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
         }
 
-        .filter-input:focus {
+        .input-field:focus {
             outline: none;
             border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .input-field:hover {
+            border-color: #cbd5e1;
+            transform: translateY(-1px);
         }
 
         .btn {
-            padding: 10px 20px;
+            width: 100%;
+            padding: 18px 20px;
             border: none;
-            border-radius: 8px;
-            font-weight: 600;
+            border-radius: 15px;
+            font-size: 1.1rem;
+            font-weight: 700;
             cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.6s ease;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+        }
+
+        .btn:active {
+            transform: translateY(-1px);
+        }
+
+        .btn-assign {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-assign:hover {
+            box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-timer {
+            background: linear-gradient(135deg, #facc15 0%, #eab308 100%);
+            color: #1e293b;
+            box-shadow: 0 10px 25px rgba(250, 204, 21, 0.3);
+        }
+
+        .btn-timer:hover {
+            box-shadow: 0 15px 35px rgba(250, 204, 21, 0.4);
+        }
+
+        .btn-return {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-return:hover {
+            box-shadow: 0 15px 35px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-remove {
+            background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+            color: white;
+            box-shadow: 0 10px 25px rgba(249, 115, 22, 0.3);
+        }
+
+        .btn-remove:hover {
+            box-shadow: 0 15px 35px rgba(249, 115, 22, 0.4);
+        }
+
+        .btn-unassign {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-unassign:hover {
+            box-shadow: 0 15px 35px rgba(239, 68, 68, 0.4);
+        }
+
+        .occupied-room {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #1e293b;
+            margin: 20px 0;
+            padding: 20px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border-radius: 15px;
+            border: 2px solid rgba(102, 126, 234, 0.2);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .main-container {
+                margin: 20px;
+                padding: 30px 20px;
+            }
+            
+            .system-title {
+                font-size: 2.2rem;
+            }
+            
+            .cabanas-grid {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+                gap: 15px;
+            }
+            
+            .cabin-item {
+                height: 120px;
+            }
+            
+            .cabin-number {
+                font-size: 2rem;
+            }
+            
+            .modal-content {
+                padding: 30px 20px;
+                margin: 20px;
+            }
+        }
+
+        /* Animations */
+        .fade-in {
+            animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+
+        .floating {
+            animation: floating 3s ease-in-out infinite;
+        }
+
+        @keyframes floating {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Indicador de Estados */
+        .status-indicator {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            padding: 25px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+            margin-top: 30px;
+            transition: all 0.4s ease;
+        }
+
+        .status-indicator:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+        }
+
+        .status-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            padding: 15px;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.5);
             transition: all 0.3s ease;
-            display: inline-flex;
+        }
+
+        .status-item:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .status-color {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .status-item.available .status-color {
+            background: linear-gradient(135deg, #94a3b8 0%, #64748b 100%);
+        }
+
+        .status-item.occupied .status-color {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .status-item.out .status-color {
+            background: linear-gradient(135deg, #facc15 0%, #eab308 100%);
+        }
+
+        .status-item.expired .status-color {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+
+        .status-text {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #475569;
+            text-align: center;
+        }
+
+        /* Banner de Notificaciones */
+        .notification-banner {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            backdrop-filter: blur(20px);
+            border: 2px solid rgba(102, 126, 234, 0.3);
+            border-radius: 20px;
+            padding: 25px;
+            margin-top: 30px;
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.15);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: slideInDown 0.6s ease-out;
+        }
+
+        .notification-banner.hidden {
+            display: none;
+        }
+
+        @keyframes slideInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .notification-content {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .notification-icon {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            flex-shrink: 0;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .notification-text {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .notification-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .notification-description {
+            color: #64748b;
+            font-size: 1rem;
+            line-height: 1.5;
+        }
+
+        .notification-actions {
+            display: flex;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .btn-notification {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
             align-items: center;
             gap: 8px;
         }
 
-        .btn-primary {
+        .btn-enable {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            box-shadow: 0 6px 15px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-enable:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-dismiss {
+            background: rgba(255, 255, 255, 0.8);
+            color: #64748b;
+            border: 1px solid rgba(203, 213, 225, 0.5);
+        }
+
+        .btn-dismiss:hover {
+            background: rgba(255, 255, 255, 0.95);
+            color: #475569;
+            transform: translateY(-1px);
+        }
+
+        /* Panel de Estado de Notificaciones */
+        .notification-status {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .notification-status.hidden {
+            display: none;
+        }
+
+        .status-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .status-icon {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .status-text {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex: 1;
+        }
+
+        .status-message {
+            color: #64748b;
+            font-weight: 500;
+        }
+
+        .btn-reopen {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn-secondary {
-            background: #64748b;
-            color: white;
-        }
-
-        .btn-secondary:hover {
-            background: #475569;
-        }
-
-        .btn-success {
-            background: #10b981;
-            color: white;
-        }
-
-        .btn-success:hover {
-            background: #059669;
-        }
-
-        .chart-container {
-            background: white;
+            border: none;
+            padding: 8px 16px;
             border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .export-section {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-        }
-
-        .export-buttons {
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
             display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
+            align-items: center;
+            gap: 6px;
         }
 
-        .loading {
+        .btn-reopen:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        /* Indicador de Estado de Conexión */
+        .connection-status {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border-radius: 15px;
+            padding: 15px 25px;
+            margin-bottom: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+            transition: all 0.4s ease;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.connecting {
+            background: #facc15;
+            animation: pulse 1s infinite;
+        }
+
+        .status-dot.connected {
+            background: #10b981;
+            animation: none;
+        }
+
+        .status-dot.error {
+            background: #ef4444;
+            animation: none;
+        }
+
+        .status-text {
+            font-weight: 600;
+            color: #475569;
+            font-size: 0.95rem;
+        }
+
+        /* Indicador de Carga */
+        .loading-indicator {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
             text-align: center;
-            padding: 40px;
+        }
+
+        .loading-indicator.hidden {
+            display: none;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid rgba(102, 126, 234, 0.2);
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+
+        .loading-indicator p {
             color: #64748b;
+            font-size: 1.1rem;
+            font-weight: 500;
         }
 
-        .error-message {
-            background: #fee2e2;
-            color: #991b1b;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border: 1px solid #fca5a5;
+        .cabanas-grid.hidden {
+            display: none;
         }
 
-        .success-message {
-            background: #dcfce7;
-            color: #166534;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border: 1px solid #86efac;
+        .retry-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
+        .retry-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .retry-button.hidden {
+            display: none;
+        }
+
+        .loading-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .load-local-button {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .load-local-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        }
+
+
+
+        /* Responsive para notificaciones */
         @media (max-width: 768px) {
-            .admin-container {
-                margin: 10px;
-                padding: 20px;
-            }
-            
-            .dashboard-title {
-                font-size: 2rem;
-            }
-            
-            .stats-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .filter-row {
+            .notification-content {
                 flex-direction: column;
-                align-items: stretch;
+                text-align: center;
+                gap: 15px;
             }
             
-            .export-buttons {
+            .notification-actions {
+                justify-content: center;
+                width: 100%;
+            }
+            
+            .btn-notification {
+                flex: 1;
+                justify-content: center;
+            }
+            
+            .status-content {
                 flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+            
+            .status-text {
+                flex-direction: column;
+                gap: 10px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="min-h-screen bg-gradient-to-br from-blue-600 to-purple-700 p-4">
-        <div class="max-w-7xl mx-auto bg-white rounded-2xl shadow-2xl overflow-hidden">
-            <!-- Header -->
-            <div class="bg-gradient-to-r from-blue-600 to-purple-600 text-white p-8 text-center">
-                <h1 class="text-4xl font-bold mb-2">Dashboard Administrativo</h1>
-                <p class="text-xl opacity-90">Sistema de Gestión de Cabañas - Análisis y Reportes</p>
-            </div>
 
-                    <!-- Mensaje de Estado -->
-        <div id="statusMessage" class="mx-6 mb-4 p-4 bg-blue-100 border border-blue-400 text-blue-700 rounded-lg hidden">
-            <div class="flex items-center">
-                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-3"></div>
-                <span id="statusText">Conectando con Firebase...</span>
+    <!-- Contenedor principal de la aplicación -->
+    <div class="main-container">
+        
+        <!-- Título principal -->
+        <h1 class="system-title">Sistema de Gestión de Cabañas</h1>
+        
+        <!-- Indicador de Estado de Conexión -->
+        <div id="connectionStatus" class="connection-status">
+            <div class="status-indicator">
+                <div class="status-dot connecting"></div>
+                <span class="status-text">Conectando con Firebase...</span>
             </div>
         </div>
 
-        <!-- Stats Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6 p-6 bg-gray-50">
-                <div class="bg-white rounded-xl p-6 shadow-lg text-center">
-                    <div class="text-3xl font-bold text-blue-600" id="totalCabanas">18</div>
-                    <div class="text-gray-600">Total Cabañas</div>
+        <!-- Indicador de Carga -->
+        <div id="loadingIndicator" class="loading-indicator">
+            <div class="loading-spinner"></div>
+            <p>Cargando sistema de cabañas...</p>
+            <div class="loading-actions">
+                <button id="retryButton" class="retry-button hidden">
+                    <i class="fas fa-redo mr-2"></i>Reintentar Conexión
+                </button>
+                <button id="loadLocalButton" class="load-local-button">
+                    <i class="fas fa-desktop mr-2"></i>Cargar Sistema Local
+                </button>
+            </div>
+        </div>
+
+        <!-- Cuadrícula de cabañas -->
+        <div id="cabanasGrid" class="cabanas-grid hidden">
+            <!-- Los botones de las cabañas se generarán con JavaScript -->
+        </div>
+
+        <!-- Mensaje de estado -->
+        <p id="statusMessage" class="status-message"></p>
+        
+
+        
+        <!-- Indicador de Estados -->
+        <div class="status-indicator">
+            <h3 class="text-xl font-bold text-gray-700 mb-4 text-center">Estados de las Cabañas</h3>
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="status-item available">
+                    <div class="status-color"></div>
+                    <span class="status-text">Disponible</span>
                 </div>
-                <div class="bg-white rounded-xl p-6 shadow-lg text-center">
-                    <div class="text-3xl font-bold text-green-600" id="cabanasOcupadas">0</div>
-                    <div class="text-gray-600">Ocupadas</div>
+                <div class="status-item occupied">
+                    <div class="status-color"></div>
+                    <span class="status-text">Ocupada</span>
                 </div>
-                <div class="bg-white rounded-xl p-6 shadow-lg text-center">
-                    <div class="text-3xl font-bold text-yellow-600" id="cabanasEnBreak">0</div>
-                    <div class="text-gray-600">En Break</div>
+                <div class="status-item out">
+                    <div class="status-color"></div>
+                    <span class="status-text">En Break</span>
                 </div>
-                <div class="bg-white rounded-xl p-6 shadow-lg text-center">
-                    <div class="text-3xl font-bold text-red-600" id="cabanasExpiradas">0</div>
-                    <div class="text-gray-600">Expiradas</div>
-                </div>
-                <div class="bg-white rounded-xl p-6 shadow-lg text-center">
-                    <div class="text-3xl font-bold text-purple-600" id="totalLogs">0</div>
-                    <div class="text-gray-600">Total Logs</div>
-                </div>
-                <div class="bg-white rounded-xl p-6 shadow-lg text-center">
-                    <div class="text-3xl font-bold text-indigo-600" id="tiempoPromedio">0m</div>
-                    <div class="text-gray-600">Promedio Break</div>
+                <div class="status-item expired">
+                    <div class="status-color"></div>
+                    <span class="status-text">Expirada</span>
                 </div>
             </div>
+        </div>
+        
 
-            <!-- Tabs -->
-            <div class="p-6">
-                <div class="flex flex-wrap gap-2 mb-6">
-                    <button class="tab-btn active px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold" onclick="showTab('overview')">
-                        <i class="fas fa-chart-line mr-2"></i>Resumen
+
+        <!-- Banner de Permisos de Notificaciones -->
+        <div id="notificationBanner" class="notification-banner hidden">
+            <div class="notification-content">
+                <div class="notification-icon">
+                    <i class="fas fa-bell text-2xl"></i>
+                </div>
+                <div class="notification-text">
+                    <h4 class="notification-title">Activar Notificaciones</h4>
+                    <p class="notification-description">Recibe alertas automáticas cuando las cabañas cambien de estado o expiren los temporizadores.</p>
+                </div>
+                <div class="notification-actions">
+                    <button id="enableNotificationsBtn" class="btn-notification btn-enable">
+                        <i class="fas fa-check mr-2"></i>Activar
                     </button>
-                                                    <button class="tab-btn px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold" onclick="showTab('cabanas'); console.log('🔘 Botón cabañas clickeado');">
-                                    <i class="fas fa-home mr-2"></i>Estado Cabañas
-                                </button>
-                                                    <button class="tab-btn px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold" onclick="showTab('logs'); console.log('🔘 Botón logs clickeado');">
-                                    <i class="fas fa-list mr-2"></i>Logs del Sistema
-                                </button>
-                                <button class="tab-btn px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold" onclick="showTab('analytics'); console.log('🔘 Botón analytics clickeado');">
-                                    <i class="fas fa-chart-bar mr-2"></i>Analíticas
-                                </button>
-                                <button class="tab-btn px-6 py-3 bg-gray-200 text-gray-700 rounded-lg font-semibold" onclick="showTab('reports'); console.log('🔘 Botón reports clickeado');">
-                                    <i class="fas fa-file-alt mr-2"></i>Reportes
-                                </button>
+                    <button id="dismissNotificationsBtn" class="btn-notification btn-dismiss">
+                        <i class="fas fa-times mr-2"></i>Dismiss
+                    </button>
                 </div>
-
-                <!-- Tab Content -->
-                <div id="overview" class="tab-content active">
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                                            <div class="bg-white rounded-xl p-6 shadow-lg">
-                                        <h3 class="text-xl font-bold mb-4">Estado Actual de Cabañas</h3>
-                                        <div class="chart-container">
-                                            <canvas id="statusChart" width="400" height="200"></canvas>
-                                        </div>
-                                    </div>
-                                    <div class="bg-white rounded-xl p-6 shadow-lg">
-                                        <h3 class="text-xl font-bold mb-4">Actividad por Hora</h3>
-                                        <div class="chart-container">
-                                            <canvas id="activityChart" width="400" height="200"></canvas>
-                                        </div>
-                                    </div>
-                    </div>
+            </div>
+        </div>
+        
+        <!-- Panel de Estado de Notificaciones -->
+        <div id="notificationStatus" class="notification-status hidden">
+            <div class="status-content">
+                <div class="status-icon">
+                    <i class="fas fa-bell-slash text-xl"></i>
                 </div>
-
-                <div id="cabanas" class="tab-content hidden">
-                    <div class="bg-white rounded-xl p-6 shadow-lg mb-6">
-                        <div class="flex flex-wrap gap-4 items-center">
-                            <input type="text" id="searchCabanas" placeholder="Buscar por número o habitación..." 
-                                   class="px-4 py-2 border border-gray-300 rounded-lg flex-1">
-                            <select id="filterStatus" class="px-4 py-2 border border-gray-300 rounded-lg">
-                                <option value="">Todos los estados</option>
-                                <option value="available">Disponible</option>
-                                <option value="occupied">Ocupada</option>
-                                <option value="out">En Break</option>
-                                <option value="expired">Expirada</option>
-                            </select>
-                            <button class="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold" onclick="filterCabanas()">
-                                <i class="fas fa-search mr-2"></i>Filtrar
-                            </button>
-                            <button class="px-6 py-2 bg-gray-500 text-white rounded-lg font-semibold" onclick="clearFilters()">
-                                <i class="fas fa-times mr-2"></i>Limpiar
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-                        <div class="overflow-x-auto">
-                            <table class="w-full">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Número</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Estado</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Habitación</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tiempo Restante</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Última Actualización</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="cabanasTableBody" class="bg-white divide-y divide-gray-200">
-                                    <tr>
-                                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">
-                                            <div class="flex items-center justify-center">
-                                                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mr-3"></div>
-                                                Cargando datos...
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="logs" class="tab-content hidden">
-                    <div class="bg-white rounded-xl p-6 shadow-lg mb-6">
-                        <div class="flex flex-wrap gap-4 items-center">
-                            <input type="date" id="logDateFrom" class="px-4 py-2 border border-gray-300 rounded-lg">
-                            <input type="date" id="logDateTo" class="px-4 py-2 border border-gray-300 rounded-lg">
-                            <select id="logActionFilter" class="px-4 py-2 border border-gray-300 rounded-lg">
-                                <option value="">Todas las acciones</option>
-                                <option value="occupied">Ocupada</option>
-                                <option value="out">Break iniciado</option>
-                                <option value="expired">Expirada</option>
-                                <option value="available">Desocupada</option>
-                            </select>
-                            <button class="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold" onclick="filterLogs()">
-                                <i class="fas fa-search mr-2"></i>Filtrar
-                            </button>
-                            <button class="px-6 py-2 bg-gray-500 text-white rounded-lg font-semibold" onclick="clearLogFilters()">
-                                <i class="fas fa-times mr-2"></i>Limpiar
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-white rounded-xl shadow-lg overflow-hidden">
-                        <div class="overflow-x-auto">
-                            <table class="w-full">
-                                <thead class="bg-gray-50">
-                                    <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Fecha/Hora</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cabaña</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Acción</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Habitación</th>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usuario</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="logsTableBody" class="bg-white divide-y divide-gray-200">
-                                    <tr>
-                                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">
-                                            <div class="flex items-center justify-center">
-                                                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mr-3"></div>
-                                                Cargando logs...
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="analytics" class="tab-content hidden">
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                                                            <div class="bg-white rounded-xl p-6 shadow-lg">
-                                        <h3 class="text-xl font-bold mb-4">Uso de Cabañas por Día</h3>
-                                        <div class="chart-container">
-                                            <canvas id="dailyUsageChart" width="400" height="200"></canvas>
-                                        </div>
-                                    </div>
-                                    <div class="bg-white rounded-xl p-6 shadow-lg">
-                                        <h3 class="text-xl font-bold mb-4">Duración Promedio de Breaks</h3>
-                                        <div class="chart-container">
-                                            <canvas id="breakDurationChart" width="400" height="200"></canvas>
-                                        </div>
-                                    </div>
-                                    <div class="bg-white rounded-xl p-6 shadow-lg lg:col-span-2">
-                                        <h3 class="text-xl font-bold mb-4">Habitaciones Más Activas</h3>
-                                        <div class="chart-container">
-                                            <canvas id="roomActivityChart" width="400" height="200"></canvas>
-                                        </div>
-                                    </div>
-                    </div>
-                </div>
-
-                <div id="reports" class="tab-content hidden">
-                    <div class="bg-white rounded-xl p-6 shadow-lg mb-6">
-                        <h3 class="text-xl font-bold mb-4">Generar Reportes</h3>
-                        <div class="flex flex-wrap gap-4 items-center mb-4">
-                            <input type="date" id="reportDateFrom" class="px-4 py-2 border border-gray-300 rounded-lg">
-                            <input type="date" id="reportDateTo" class="px-4 py-2 border border-gray-300 rounded-lg">
-                            <select id="reportType" class="px-4 py-2 border border-gray-300 rounded-lg">
-                                <option value="daily">Reporte Diario</option>
-                                <option value="weekly">Reporte Semanal</option>
-                                <option value="monthly">Reporte Mensual</option>
-                                <option value="custom">Rango Personalizado</option>
-                            </select>
-                        </div>
-                        <div class="flex gap-4">
-                            <button class="px-6 py-2 bg-green-600 text-white rounded-lg font-semibold" onclick="generateReport('pdf')">
-                                <i class="fas fa-file-pdf mr-2"></i>Exportar PDF
-                            </button>
-                            <button class="px-6 py-2 bg-blue-600 text-white rounded-lg font-semibold" onclick="generateReport('excel')">
-                                <i class="fas fa-file-excel mr-2"></i>Exportar Excel
-                            </button>
-                            <button class="px-6 py-2 bg-gray-600 text-white rounded-lg font-semibold" onclick="generateReport('csv')">
-                                <i class="fas fa-file-csv mr-2"></i>Exportar CSV
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div id="reportPreview" class="bg-white rounded-xl p-6 shadow-lg">
-                        <h3 class="text-xl font-bold mb-4">Vista Previa del Reporte</h3>
-                        <div id="reportContent">
-                            <p class="text-gray-500">Selecciona un rango de fechas y tipo de reporte para generar la vista previa.</p>
-                        </div>
-                    </div>
+                <div class="status-text">
+                    <span class="status-message">Las notificaciones están desactivadas</span>
+                    <button id="reopenNotificationsBtn" class="btn-reopen">
+                        <i class="fas fa-cog mr-2"></i>Configurar
+                    </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <style>
-        /* Estilos del Dashboard Administrativo */
-        body { 
-            font-family: 'Inter', sans-serif; 
-        }
-        
-        .tab-btn.active {
-            background-color: #2563eb; /* blue-600 */
-            color: white;
-        }
-        
-        .tab-btn:not(.active) {
-            background-color: #e5e7eb; /* gray-200 */
-            color: #4b5563; /* gray-700 */
-        }
-        
-        /* Animaciones */
-        .animate-spin {
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        
-        /* Responsive */
-        @media (max-width: 768px) {
-            .grid-cols-6 {
-                grid-template-columns: repeat(2, minmax(0, 1fr));
-            }
-        }
-        
-        /* Control de tamaño de gráficos */
-        .chart-container {
-            position: relative;
-            height: 300px;
-            width: 100%;
-            max-width: 100%;
-            overflow: hidden;
-        }
-        
-        .chart-container canvas {
-            max-height: 300px !important;
-            max-width: 100% !important;
-        }
-        
-        /* Gráficos específicos */
-        #statusChart {
-            max-height: 250px !important;
-        }
-        
-        #activityChart {
-            max-height: 300px !important;
-        }
-        
-        #dailyUsageChart {
-            max-height: 300px !important;
-        }
-        
-        #breakDurationChart {
-            max-height: 300px !important;
-        }
-        
-        #roomActivityChart {
-            max-height: 400px !important;
-        }
-    </style>
+    <!-- Modal de Alerta de Emergencia -->
+    <div id="alertModal" class="modal-overlay">
+        <div class="modal-content bg-red-50 border-red-200">
+            <div class="modal-header">
+                <h3 id="alertModalTitle" class="modal-title text-red-800">🚨 ALERTA IMPORTANTE</h3>
+                <button id="closeAlertModalBtn" class="close-button text-red-600">&times;</button>
+            </div>
+            <div class="modal-section">
+                <p id="alertModalBody" class="text-red-700 text-center text-lg font-semibold"></p>
+                <div class="text-center mt-6">
+                    <button id="alertModalOkBtn" class="bg-red-600 hover:bg-red-700 text-white px-8 py-3 rounded-lg font-semibold transition duration-300">
+                        <i class="fas fa-check mr-2"></i>Entendido
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 
+    <!-- Modal (Pop-up) para asignar/desasignar cabañas -->
+    <div id="cabinModal" class="modal-overlay">
+        <div class="modal-content">
+            
+            <!-- Contenedor del modal -->
+            <div class="modal-header">
+                <h3 id="modalTitle" class="modal-title"></h3>
+                <button id="closeModalBtn" class="close-button">&times;</button>
+            </div>
+
+            <!-- Contenido para asignar una cabaña (oculto por defecto) -->
+            <div id="assignContent" class="modal-section">
+                <p>Por favor, ingrese el número de habitación para ocupar la cabaña.</p>
+                <input type="text" id="roomNumberInput" placeholder="Habitación #" class="input-field">
+                <button id="assignBtn" class="btn btn-assign">
+                    <i class="fas fa-check mr-2"></i>Ocupar Cabaña
+                </button>
+            </div>
+            
+            <!-- Contenido para gestionar una cabaña ocupada (oculto por defecto) -->
+            <div id="manageContent" class="modal-section hidden">
+                <p class="font-medium">La cabaña está asignada a:</p>
+                <div id="occupiedRoomNumber" class="occupied-room"></div>
+                
+                <!-- Botones que cambian según el estado de la cabaña -->
+                <div class="space-y-3">
+                    <button id="startTimerBtn" class="btn btn-timer hidden">
+                        <i class="fas fa-clock mr-2"></i>Marcar Salida (Break)
+                    </button>
+                    <button id="endBreakBtn" class="btn btn-return hidden">
+                        <i class="fas fa-undo mr-2"></i>Marcar Regreso
+                    </button>
+                    <button id="removeItemsBtn" class="btn btn-remove hidden">
+                        <i class="fas fa-box mr-2"></i>Retirar Pertenencias
+                    </button>
+                    <button id="unassignBtn" class="btn btn-unassign hidden">
+                        <i class="fas fa-times mr-2"></i>Desocupar Cabaña
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script de JavaScript para la lógica de la aplicación -->
     <script type="module">
-        // Dashboard Administrativo - Sistema de Cabañas
-        // Firebase SDKs
+        // Firebase SDKs - Versión 9+ (compatible con tu configuración)
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-        import { getDatabase, ref, onValue, get, query, orderByChild, startAt, endAt } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+        import { getDatabase, ref, set, onValue, off, push, remove, get } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
-        // Configuración de Firebase
+        // Firebase configuration - Tu configuración exacta
         const firebaseConfig = {
             apiKey: "AIzaSyAd2bZmSEWzKMYoAn2p-chUstWWnGYMQig",
             authDomain: "secrets-e9d81.firebaseapp.com",
@@ -644,1161 +1081,1766 @@
             measurementId: "G-8M52F3T512"
         };
 
-        // Inicializar Firebase
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        const auth = getAuth(app);
+        // Initialize Firebase
+        let app, db, auth;
+        
+        try {
+            app = initializeApp(firebaseConfig);
+            db = getDatabase(app);
+            auth = getAuth(app);
+            
+            console.log('✅ Firebase inicializado correctamente:', {
+                app: !!app,
+                db: !!db,
+                auth: !!auth,
+                config: firebaseConfig
+            });
+        } catch (error) {
+            console.error('❌ Error al inicializar Firebase:', error);
+            throw new Error(`Error de inicialización de Firebase: ${error.message}`);
+        }
+
+        // Referencias a elementos del DOM
+        const cabanasGrid = document.getElementById('cabanasGrid');
+        const statusMessage = document.getElementById('statusMessage');
+
+        // Referencias a los elementos del modal
+        const cabinModal = document.getElementById('cabinModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const closeModalBtn = document.getElementById('closeModalBtn');
+        const assignContent = document.getElementById('assignContent');
+        const manageContent = document.getElementById('manageContent');
+        const roomNumberInput = document.getElementById('roomNumberInput');
+        const occupiedRoomNumber = document.getElementById('occupiedRoomNumber');
+        const assignBtn = document.getElementById('assignBtn');
+        const startTimerBtn = document.getElementById('startTimerBtn');
+        const endBreakBtn = document.getElementById('endBreakBtn');
+        const removeItemsBtn = document.getElementById('removeItemsBtn');
+        const unassignBtn = document.getElementById('unassignBtn');
 
         // Constantes del sistema
-        const NUM_CABANAS = 18; // Número total de cabañas
+        const NUM_CABANAS = 18;
+        const TIMER_DURATION_MINUTES = 60;
+        const TIMER_DURATION_MS = TIMER_DURATION_MINUTES * 60 * 1000;
+
+        // Variables para Firebase y gestión de datos
+        let cabanas = [];
+        let currentCabinNumber = null;
+        let isFirebaseReady = false;
+        let cabanasRef = null;
+        let authUser = null;
         
-        // Variables globales
-        let cabanasData = {};
-        let logsData = [];
-        let currentCharts = {};
+        // Referencias de Firebase
+        const CABANAS_PATH = 'cabanas';
+        const LOGS_PATH = 'logs';
 
-        // Inicializar dashboard
-        async function initializeDashboard() {
-            try {
-                showStatus('🚀 Iniciando dashboard administrativo...', 'info');
-                
-                // Autenticación anónima
-                showStatus('🔐 Autenticando con Firebase...', 'info');
-                await signInAnonymously(auth);
-                console.log('✅ Autenticado en dashboard admin');
-                
-                // Cargar datos
-                showStatus('📥 Cargando datos de cabañas...', 'info');
-                await loadCabanasData();
-                
-                showStatus('📝 Cargando logs del sistema...', 'info');
-                await loadLogsData();
-                
-                // Configurar listeners en tiempo real
-                showStatus('🔗 Configurando sincronización en tiempo real...', 'info');
-                setupRealtimeListeners();
-                
-                showStatus('✅ Dashboard inicializado correctamente', 'success');
-                setTimeout(() => hideStatus(), 2000);
-                
-            } catch (error) {
-                console.error('❌ Error al inicializar dashboard:', error);
-                showError(`Error de conexión con Firebase: ${error.message}`);
-            }
-        }
+        // Sistema de gestión de permisos de notificaciones
+        let notificationPermission = 'default';
+        
+        // Elementos del DOM para notificaciones
+        const notificationBanner = document.getElementById('notificationBanner');
+        const notificationStatus = document.getElementById('notificationStatus');
+        const enableNotificationsBtn = document.getElementById('enableNotificationsBtn');
+        const dismissNotificationsBtn = document.getElementById('dismissNotificationsBtn');
+        const reopenNotificationsBtn = document.getElementById('reopenNotificationsBtn');
 
-        // Cargar datos de cabañas
-        async function loadCabanasData() {
-            try {
-                console.log('🔄 Cargando datos de cabañas...');
-                const cabanasRef = ref(db, 'cabanas');
-                const snapshot = await get(cabanasRef);
-                
-                console.log('📊 Snapshot de cabañas:', snapshot);
-                
-                if (snapshot.exists()) {
-                    cabanasData = snapshot.val();
-                    console.log('✅ Datos de cabañas cargados:', cabanasData);
-                    console.log('🔢 Número de cabañas:', Object.keys(cabanasData).length);
-                    
-                    updateStats();
-                    updateCabanasTable();
-                    updateCharts();
-                } else {
-                    console.log('⚠️ No hay datos de cabañas en Firebase');
-                    cabanasData = {};
-                    updateStats();
-                    updateCabanasTable();
-                }
-            } catch (error) {
-                console.error('❌ Error al cargar cabañas:', error);
-                showError(`Error al cargar cabañas: ${error.message}`);
-            }
-        }
-
-        // Cargar logs del sistema
-        async function loadLogsData() {
-            try {
-                console.log('🔄 Cargando logs del sistema...');
-                const logsRef = ref(db, 'logs');
-                const snapshot = await get(logsRef);
-                
-                console.log('📊 Snapshot de logs:', snapshot);
-                
-                if (snapshot.exists()) {
-                    logsData = Object.values(snapshot.val()).sort((a, b) => 
-                        new Date(b.timestamp) - new Date(a.timestamp)
-                    );
-                    console.log('✅ Logs cargados:', logsData.length, 'registros');
-                    updateLogsTable();
-                    updateStats();
-                } else {
-                    console.log('⚠️ No hay logs en Firebase');
-                    logsData = [];
-                    updateLogsTable();
-                    updateStats();
-                }
-            } catch (error) {
-                console.error('❌ Error al cargar logs:', error);
-                showError(`Error al cargar logs: ${error.message}`);
-            }
-        }
-
-        // Configurar listeners en tiempo real
-        function setupRealtimeListeners() {
-            // Listener para cabañas
-            const cabanasRef = ref(db, 'cabanas');
-            onValue(cabanasRef, (snapshot) => {
-                if (snapshot.exists()) {
-                    cabanasData = snapshot.val();
-                    updateStats();
-                    updateCabanasTable();
-                    updateCharts();
-                }
-            });
-
-            // Listener para logs
-            const logsRef = ref(db, 'logs');
-            onValue(logsRef, (snapshot) => {
-                if (snapshot.exists()) {
-                    logsData = Object.values(snapshot.val()).sort((a, b) => 
-                        new Date(b.timestamp) - new Date(a.timestamp)
-                    );
-                    updateLogsTable();
-                    updateStats();
-                }
-            });
-        }
-
-        // Actualizar estadísticas
-        function updateStats() {
-            const totalCabanas = NUM_CABANAS; // Siempre NUM_CABANAS cabañas
-            const cabanasOcupadas = Object.values(cabanasData).filter(c => c.status === 'occupied').length;
-            const cabanasEnBreak = Object.values(cabanasData).filter(c => c.status === 'out').length;
-            const cabanasExpiradas = Object.values(cabanasData).filter(c => c.status === 'expired').length;
-            const cabanasDisponibles = totalCabanas - cabanasOcupadas - cabanasEnBreak - cabanasExpiradas;
-            const totalLogs = logsData.length;
-
-            // Calcular tiempo promedio de break
-            let tiempoPromedio = 0;
-            const breaksCompletados = logsData.filter(log => 
-                log.action === 'out' && log.details && log.details.startTime
-            );
+        // Función para verificar el estado de las notificaciones
+        function checkNotificationPermission() {
+            console.log(`🔍 Verificando permisos de notificaciones...`);
             
-            if (breaksCompletados.length > 0) {
-                const tiempos = breaksCompletados.map(log => {
-                    const start = new Date(log.details.startTime);
-                    const end = new Date(log.timestamp);
-                    return (end - start) / (1000 * 60); // en minutos
-                });
-                tiempoPromedio = Math.round(tiempos.reduce((a, b) => a + b, 0) / tiempos.length);
+            if (!('Notification' in window)) {
+                console.log('❌ Este navegador no soporta notificaciones');
+                return false;
             }
-
-            // Actualizar UI
-            document.getElementById('totalCabanas').textContent = totalCabanas;
-            document.getElementById('cabanasOcupadas').textContent = cabanasOcupadas;
-            document.getElementById('cabanasEnBreak').textContent = cabanasEnBreak;
-            document.getElementById('cabanasExpiradas').textContent = cabanasExpiradas;
-            document.getElementById('totalLogs').textContent = totalLogs;
-            document.getElementById('tiempoPromedio').textContent = `${tiempoPromedio}m`;
+            
+            // Solo sincronizar si el estado nativo es 'granted'
+            if (Notification.permission === 'granted') {
+                notificationPermission = 'granted';
+                console.log(`✅ Permisos ya concedidos, estado sincronizado`);
+            } else {
+                notificationPermission = Notification.permission;
+                console.log(`📱 Permiso de notificaciones actual: ${notificationPermission}`);
+            }
+            
+            console.log(`🔄 Estado final:`, {
+                local: notificationPermission,
+                native: Notification.permission
+            });
+            
+            // Si no se han solicitado permisos, solicitarlos automáticamente
+            if (notificationPermission === 'default') {
+                console.log(`⏳ Permisos no solicitados, solicitando automáticamente...`);
+                setTimeout(() => {
+                    requestNotificationPermission();
+                }, 1000);
+            }
+            
+            updateNotificationUI();
+            return true;
         }
 
-        // Actualizar tabla de cabañas
-        function updateCabanasTable(filteredData = null) {
-            const tbody = document.getElementById('cabanasTableBody');
-            if (!tbody) {
-                console.error('❌ Tabla de cabañas no encontrada');
-                return;
+        // Función para actualizar la interfaz de notificaciones
+        function updateNotificationUI() {
+            if (notificationPermission === 'granted') {
+                // Notificaciones activadas
+                notificationBanner.classList.add('hidden');
+                notificationStatus.classList.add('hidden');
+                statusMessage.textContent = '✅ Notificaciones activadas. Recibirás alertas automáticas del sistema.';
+            } else if (notificationPermission === 'denied') {
+                // Notificaciones denegadas
+                notificationBanner.classList.add('hidden');
+                notificationStatus.classList.remove('hidden');
+                statusMessage.textContent = '❌ Notificaciones denegadas. No podrás recibir alertas automáticas.';
+            } else {
+                // Estado por defecto - mostrar banner
+                notificationBanner.classList.remove('hidden');
+                notificationStatus.classList.add('hidden');
+                statusMessage.textContent = '🔔 Sistema de gestión de cabañas listo. Activa las notificaciones para recibir alertas.';
+            }
+        }
+
+                // Función para solicitar permisos de notificación
+        async function requestNotificationPermission() {
+            console.log(`🔔 Solicitando permisos de notificación...`);
+            
+            if (!('Notification' in window)) {
+                console.error('❌ Tu navegador no soporta notificaciones');
+                alert('Tu navegador no soporta notificaciones. Actualiza a una versión más reciente.');
+                return false;
             }
 
-            tbody.innerHTML = '';
-
-            const dataToShow = filteredData || Object.entries(cabanasData);
-            
-            // Si no hay datos filtrados, mostrar las NUM_CABANAS cabañas con estado por defecto
-            if (dataToShow.length === 0) {
-                console.log(`📋 Generando tabla con ${NUM_CABANAS} cabañas por defecto...`);
+            try {
+                console.log(`📱 Solicitando permiso...`);
+                const permission = await Notification.requestPermission();
+                console.log(`📱 Permiso recibido: ${permission}`);
                 
-                for (let i = 1; i <= NUM_CABANAS; i++) {
-                    const row = document.createElement('tr');
+                notificationPermission = permission;
+                updateNotificationUI();
+                
+                if (permission === 'granted') {
+                    console.log(`✅ Permiso concedido! Probando notificación push...`);
                     
-                    // Crear badge de estado por defecto
-                    const statusBadge = document.createElement('span');
-                    statusBadge.className = 'inline-flex px-2 py-1 text-xs font-semibold rounded-full status-available';
-                    statusBadge.textContent = 'Disponible';
-
-                    row.innerHTML = `
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            <div class="text-sm font-medium text-gray-900">Cabaña ${i}</div>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap">
-                            ${statusBadge.outerHTML}
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            N/A
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            N/A
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            N/A
-                        </td>
-                    `;
+                    // Actualizar UI inmediatamente
+                    updateNotificationUI();
                     
-                    tbody.appendChild(row);
+                    // Probar notificación push después de un breve retraso
+                    setTimeout(() => {
+                        console.log(`🔔 Probando notificación push...`);
+                        showNotification('🎉 ¡Notificaciones Push Activadas!', 'Ahora recibirás alertas automáticas del sistema de cabañas.');
+                    }, 500);
+                    
+                    return true;
+                } else if (permission === 'denied') {
+                    console.log(`❌ Permiso denegado`);
+                    updateNotificationUI();
+                    
+                    // Mostrar instrucciones para habilitar manualmente
+                    showAlertModal('🔕 Permisos Denegados', 
+                        'Las notificaciones están bloqueadas. Para habilitarlas:\n\n' +
+                        '1. Haz clic en el candado 🔒 en la barra de direcciones\n' +
+                        '2. Selecciona "Permitir" en notificaciones\n' +
+                        '3. Recarga la página'
+                    );
+                    
+                    return false;
+                } else {
+                    console.log(`⏳ Permiso no decidido`);
+                    updateNotificationUI();
+                    return false;
                 }
-                
-                console.log(`✅ Tabla de cabañas generada con ${NUM_CABANAS} cabañas por defecto`);
+            } catch (error) {
+                console.error('❌ Error al solicitar permisos:', error);
+                return false;
+            }
+        }
+
+        // Función para mostrar/ocultar el grid de cabañas
+        function showCabanasGrid() {
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const cabanasGrid = document.getElementById('cabanasGrid');
+            
+            if (!loadingIndicator || !cabanasGrid) {
+                console.error('❌ Elementos del DOM no encontrados para showCabanasGrid');
                 return;
             }
             
-            dataToShow.forEach(([id, cabana]) => {
-                const row = document.createElement('tr');
+            loadingIndicator.classList.add('hidden');
+            cabanasGrid.classList.remove('hidden');
+            
+            // Verificar estado de las cabañas
+            console.log('🔍 Estado final de las cabañas:');
+            for (let i = 1; i <= NUM_CABANAS; i++) {
+                if (cabanas[i]) {
+                    console.log(`Cabaña ${i}:`, {
+                        status: cabanas[i].status,
+                        roomNumber: cabanas[i].roomNumber,
+                        startTime: cabanas[i].startTime,
+                        hasElement: !!cabanas[i].element,
+                        elementClasses: cabanas[i].element ? cabanas[i].element.className : 'N/A'
+                    });
+                }
+            }
+        }
+
+        // Función para mostrar botón de reintentar
+        function showRetryButton() {
+            const retryButton = document.getElementById('retryButton');
+            if (retryButton) {
+                retryButton.classList.remove('hidden');
+            }
+        }
+
+        // Función para ocultar botón de reintentar
+        function hideRetryButton() {
+            const retryButton = document.getElementById('retryButton');
+            if (retryButton) {
+                retryButton.classList.add('hidden');
+            }
+        }
+
+        // Función para actualizar el indicador de estado de conexión
+        function updateConnectionStatus(status, message) {
+            const connectionStatus = document.getElementById('connectionStatus');
+            const statusDot = connectionStatus.querySelector('.status-dot');
+            const statusText = connectionStatus.querySelector('.status-text');
+            
+            // Remover clases anteriores
+            statusDot.classList.remove('connecting', 'connected', 'error');
+            
+            // Agregar nueva clase
+            statusDot.classList.add(status);
+            statusText.textContent = message;
+        }
+
+        // Función para abrir configuración del navegador
+        function openNotificationSettings() {
+            if ('Notification' in window && Notification.permission === 'denied') {
+                // Mostrar instrucciones para el usuario
+                const instructions = `
+🔧 Para activar las notificaciones:
+
+1. Haz clic en el ícono de candado 🔒 en la barra de direcciones
+2. Selecciona "Permitir" en la opción de notificaciones
+3. Recarga la página
+
+O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
+                `;
+                alert(instructions);
+            }
+        }
+        
+        // Sistema de notificaciones push robusto
+        function showNotification(title, body) {
+            console.log(`🔔 === INTENTANDO MOSTRAR NOTIFICACIÓN PUSH ===`);
+            
+            // Verificar que no se haya mostrado la misma notificación recientemente
+            const notificationKey = `${title}-${body}`;
+            const now = Date.now();
+            const lastShown = window.lastNotificationShown || {};
+            
+            if (lastShown[notificationKey] && (now - lastShown[notificationKey]) < 5000) {
+                console.log(`⚠️ Notificación mostrada recientemente, evitando duplicado`);
+                return;
+            }
+            
+            let notificationShown = false;
+            
+            // INTENTO 1: Notificación push del navegador (más robusta)
+            if ('Notification' in window && 'serviceWorker' in navigator) {
+                const hasPermission = notificationPermission === 'granted' || Notification.permission === 'granted';
                 
-                // Calcular tiempo restante si está en break
-                let tiempoRestante = '';
-                if (cabana.status === 'out' && cabana.startTime) {
-                    const elapsed = new Date().getTime() - new Date(cabana.startTime).getTime();
-                    const remaining = (60 * 60 * 1000) - elapsed; // 60 minutos
-                    if (remaining > 0) {
-                        const minutes = Math.floor(remaining / 60000);
-                        const seconds = Math.floor((remaining % 60000) / 1000);
-                        tiempoRestante = `${minutes}m ${seconds}s`;
-                    } else {
-                        tiempoRestante = 'Expirado';
+                if (hasPermission) {
+                    try {
+                        console.log(`✅ Creando notificación push...`);
+                        
+                        // Crear notificación con configuración optimizada para push
+                        const notification = new Notification(title, { 
+                            body,
+                            icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjNEZBRjUwIi8+Cjx0ZXh0IHg9IjE2IiB5PSIyMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iMTYiPvCfkqE8L3RleHQ+Cjwvc3ZnPgo=',
+                            badge: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjNEZBRjUwIi8+Cjx0ZXh0IHg9IjE2IiB5PSIyMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iMTYiPvCfkqE8L3RleHQ+Cjwvc3ZnPgo=',
+                            tag: 'cabin-system',
+                            requireInteraction: true,
+                            silent: false,
+                            vibrate: [200, 100, 200], // Vibración para móviles
+                            actions: [
+                                {
+                                    action: 'view',
+                                    title: 'Ver Cabaña',
+                                    icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjNEZBRjUwIi8+Cjx0ZXh0IHg9IjE2IiB5PSIyMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iMTYiPvCfkqE8L3RleHQ+Cjwvc3ZnPgo='
+                                },
+                                {
+                                    action: 'dismiss',
+                                    title: 'Descartar',
+                                    icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjNEZBRjUwIi8+Cjx0ZXh0IHg9IjE2IiB5PSIyMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iMTYiPvCfkqE8L3RleHQ+Cjwvc3ZnPgo='
+                                }
+                            ]
+                        });
+                        
+                        // Event listeners para las acciones de la notificación
+                        notification.onclick = function() {
+                            console.log('🔔 Notificación clickeada');
+                            window.focus();
+                            this.close();
+                        };
+                        
+                        notification.onactionclick = function(event) {
+                            console.log('🔔 Acción de notificación clickeada:', event.action);
+                            if (event.action === 'view') {
+                                window.focus();
+                            }
+                            this.close();
+                        };
+                        
+                        console.log(`✅ Notificación push creada exitosamente`);
+                        notificationShown = true;
+                        
+                        // Registrar que se mostró esta notificación
+                        window.lastNotificationShown = window.lastNotificationShown || {};
+                        window.lastNotificationShown[notificationKey] = now;
+                        
+                        // Auto-cerrar notificación después de 15 segundos
+                        setTimeout(() => {
+                            try {
+                                notification.close();
+                                console.log(`🔒 Notificación cerrada automáticamente`);
+                            } catch (closeError) {
+                                console.warn(`⚠️ Error al cerrar notificación:`, closeError);
+                            }
+                        }, 15000);
+                        
+                    } catch (error) {
+                        console.error('❌ Error al crear notificación push:', error);
                     }
+                } else {
+                    console.log('📱 Permisos de notificación no concedidos');
                 }
-
-                // Crear badge de estado
-                const statusBadge = document.createElement('span');
-                statusBadge.className = `inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeClass(cabana.status)}`;
-                statusBadge.textContent = getStatusText(cabana.status);
-
-                row.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm font-medium text-gray-900">${id}</div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        ${statusBadge.outerHTML}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ${cabana.roomNumber || 'N/A'}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ${tiempoRestante || 'N/A'}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        ${cabana.lastUpdated ? new Date(cabana.lastUpdated).toLocaleString() : 'N/A'}
-                    </td>
-                `;
-                
-                tbody.appendChild(row);
-            });
-            
-            console.log(`✅ Tabla de cabañas actualizada con ${dataToShow.length} registros`);
-        }
-
-        // Actualizar tabla de logs
-        function updateLogsTable(filteredData = null) {
-            const tbody = document.getElementById('logsTableBody');
-            if (!tbody) {
-                console.error('❌ Tabla de logs no encontrada');
-                return;
-            }
-
-            tbody.innerHTML = '';
-
-            const dataToShow = filteredData || logsData;
-            
-            if (dataToShow.length === 0) {
-                tbody.innerHTML = `
-                    <tr>
-                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">
-                            No hay logs disponibles
-                        </td>
-                    </tr>
-                `;
-                return;
             }
             
-            dataToShow.forEach(log => {
-                const row = document.createElement('tr');
-                
-                // Crear badge de acción
-                const actionBadge = document.createElement('span');
-                actionBadge.className = `inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusBadgeClass(log.action)}`;
-                actionBadge.textContent = getStatusText(log.action);
-
-                row.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ${new Date(log.timestamp).toLocaleString()}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        <div class="text-sm font-medium text-gray-900">${log.cabinNumber}</div>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap">
-                        ${actionBadge.outerHTML}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        ${log.roomNumber || 'N/A'}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        ${log.userId || 'Sistema'}
-                    </td>
-                `;
-                
-                tbody.appendChild(row);
-            });
+            // INTENTO 2: Modal de alerta de emergencia
+            if (!notificationShown) {
+                console.log(`📱 Mostrando modal de alerta como fallback...`);
+                showAlertModal(title, body);
+            }
             
-            console.log(`✅ Tabla de logs actualizada con ${dataToShow.length} registros`);
-        }
-
-        // Obtener texto del estado
-        function getStatusText(status) {
-            const statusMap = {
-                'available': 'Disponible',
-                'occupied': 'Ocupada',
-                'out': 'En Break',
-                'expired': 'Expirada'
-            };
-            return statusMap[status] || status;
-        }
-
-        // Obtener clase CSS para el badge de estado
-        function getStatusBadgeClass(status) {
-            const statusClasses = {
-                'available': 'bg-green-100 text-green-800',
-                'occupied': 'bg-blue-100 text-blue-800',
-                'out': 'bg-yellow-100 text-yellow-800',
-                'expired': 'bg-red-100 text-red-800'
-            };
-            return statusClasses[status] || 'bg-gray-100 text-gray-800';
-        }
-
-        // Actualizar gráficos
-        function updateCharts() {
-            console.log('📊 Iniciando actualización de gráficos...');
+            // INTENTO 3: Mensaje en estado (siempre visible)
+            if (statusMessage) {
+                statusMessage.textContent = `🔔 ${title}: ${body}`;
+                statusMessage.style.backgroundColor = '#fef3c7';
+                statusMessage.style.borderColor = '#f59e0b';
+                statusMessage.style.animation = 'pulse 1s infinite';
+                console.log(`📝 Mensaje mostrado en estado: ${title}: ${body}`);
+                
+                // Restaurar estilo después de 10 segundos
+                setTimeout(() => {
+                    statusMessage.style.backgroundColor = '';
+                    statusMessage.style.borderColor = '';
+                    statusMessage.style.animation = '';
+                }, 10000);
+            }
             
+            return notificationShown;
+        }
+
+        // Función para mostrar el modal con animación
+        function showModal() {
+            cabinModal.classList.add('visible');
+        }
+
+        // Función para ocultar el modal con animación
+        function hideModal() {
+            cabinModal.classList.remove('visible');
+        }
+        
+        // Función para mostrar modal de alerta de emergencia
+        function showAlertModal(title, body) {
+            const alertModal = document.getElementById('alertModal');
+            const alertModalTitle = document.getElementById('alertModalTitle');
+            const alertModalBody = document.getElementById('alertModalBody');
+            
+            if (alertModal && alertModalTitle && alertModalBody) {
+                alertModalTitle.textContent = title;
+                alertModalBody.textContent = body;
+                alertModal.classList.add('visible');
+                
+                // Reproducir sonido de alerta
+                playAlertSound();
+                
+                // Auto-cerrar después de 15 segundos
+                setTimeout(() => {
+                    alertModal.classList.remove('visible');
+                }, 15000);
+            }
+        }
+        
+        // Función para reproducir sonido de alerta
+        function playAlertSound() {
             try {
-                // Verificar que Chart.js esté disponible
-                if (typeof Chart === 'undefined') {
-                    console.error('❌ Chart.js no está disponible');
-                    return;
+                // Crear audio context para generar sonido
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                // Configurar sonido de alerta
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.2);
+                
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.3);
+                
+                console.log('🔊 Sonido de alerta reproducido');
+            } catch (error) {
+                console.warn('⚠️ No se pudo reproducir sonido de alerta:', error);
+            }
+        }
+
+        // Función para inicializar Firebase y autenticación
+        async function initializeFirebase() {
+            try {
+                console.log('🚀 Iniciando Firebase...');
+                
+                // Verificar que Firebase esté disponible
+                if (!auth || !db) {
+                    throw new Error('Firebase no está inicializado correctamente');
                 }
                 
-                // Verificar que haya datos
-                if (Object.keys(cabanasData).length === 0 && logsData.length === 0) {
-                    console.log('⚠️ No hay datos para mostrar en los gráficos');
-                    return;
+                // Timeout de seguridad para evitar carga infinita
+                const timeoutPromise = new Promise((_, reject) => {
+                    setTimeout(() => reject(new Error('Timeout: Firebase tardó demasiado en responder')), 3000);
+                });
+                
+                // Autenticación anónima con timeout
+                let userCredential;
+                try {
+                    userCredential = await Promise.race([
+                        signInAnonymously(auth),
+                        timeoutPromise
+                    ]);
+                } catch (authError) {
+                    console.error('❌ Error en autenticación:', authError);
+                    throw new Error(`Error de autenticación: ${authError.message}`);
                 }
                 
-                console.log('✅ Chart.js disponible, actualizando gráficos...');
+                if (!userCredential || !userCredential.user) {
+                    throw new Error('No se pudo obtener credenciales de usuario');
+                }
                 
-                updateStatusChart();
-                updateActivityChart();
-                updateDailyUsageChart();
-                updateBreakDurationChart();
-                updateRoomActivityChart();
+                authUser = userCredential.user;
+                console.log('✅ Usuario autenticado:', authUser.uid);
                 
-                console.log('✅ Todos los gráficos actualizados');
+                // Configurar referencias de Firebase
+                cabanasRef = ref(db, CABANAS_PATH);
+                
+                // Inicializar la interfaz de cabañas
+                initializeCabanas();
+                
+                // IMPORTANTE: Marcar Firebase como listo ANTES de cargar datos
+                isFirebaseReady = true;
+                
+                // Configurar listener en tiempo real
+                setupRealtimeListener();
+                
+                // Cargar datos existentes con timeout
+                try {
+                    console.log('📥 Iniciando carga de datos...');
+                    console.log('🔥 isFirebaseReady establecido a:', isFirebaseReady);
+                    await Promise.race([
+                        loadCabanasFromFirebase(),
+                        timeoutPromise
+                    ]);
+                    console.log('✅ Datos cargados exitosamente');
+                } catch (timeoutError) {
+                    console.warn('⚠️ Timeout al cargar datos, continuando con estado por defecto');
+                    // Continuar con estado por defecto
+                }
+                
+                updateConnectionStatus('connected', 'Conectado a Firebase - Sincronización en tiempo real');
+                
+                console.log('🎉 Firebase inicializado correctamente');
+                
+                // Esperar un momento para asegurar que la UI se actualice
+                setTimeout(() => {
+                    console.log('🔄 Mostrando grid después de actualización de UI...');
+                    showCabanasGrid();
+                }, 500);
                 
             } catch (error) {
-                console.error('❌ Error al actualizar gráficos:', error);
+                console.error('❌ Error al inicializar Firebase:', error);
+                statusMessage.textContent = `❌ Error de conexión con Firebase: ${error.message}. Usando modo local.`;
+                updateConnectionStatus('error', 'Error de conexión con Firebase');
+                
+                // Fallback: inicializar sin Firebase
+                initializeCabanas();
+                isFirebaseReady = false;
+                
+                // Mostrar grid inmediatamente en caso de error
+                showCabanasGrid();
             }
         }
 
-        // Gráfico de estado de cabañas
-        function updateStatusChart() {
-            try {
-                const ctx = document.getElementById('statusChart');
-                if (!ctx) {
-                    console.error('❌ Canvas de estado no encontrado');
-                    return;
-                }
-                
-                // Destruir gráfico anterior si existe
-                if (currentCharts.statusChart) {
-                    currentCharts.statusChart.destroy();
-                    currentCharts.statusChart = null;
-                }
-
-                const statusCounts = {
-                    available: Object.values(cabanasData).filter(c => c.status === 'available').length,
-                    occupied: Object.values(cabanasData).filter(c => c.status === 'occupied').length,
-                    out: Object.values(cabanasData).filter(c => c.status === 'out').length,
-                    expired: Object.values(cabanasData).filter(c => c.status === 'expired').length
+        // Función para inicializar la interfaz y el estado de las cabañas
+        function initializeCabanas() {
+            // Limpiar grid existente
+            cabanasGrid.innerHTML = '';
+            
+            for (let i = 1; i <= NUM_CABANAS; i++) {
+                // Crea un objeto para el estado de la cabaña
+                cabanas[i] = {
+                    id: i,
+                    timerId: null,
+                    countdownInterval: null, // Para el intervalo del countdown
+                    status: 'available', // 'available', 'occupied', 'out', 'expired'
+                    startTime: null,
+                    element: null,
+                    timerText: null,
+                    roomNumberElement: null,
+                    roomNumber: null,
+                    lastUpdated: null,
+                    updatedBy: null
                 };
 
-                console.log('📊 Datos para gráfico de estado:', statusCounts);
+                // Crea el elemento HTML para la cabaña
+                const cabinDiv = document.createElement('div');
+                cabinDiv.id = `cabin-${i}`;
+                cabinDiv.className = 'cabin-item available';
+                
+                // Crea el elemento para mostrar el número de la cabaña
+                const cabinNumberDisplay = document.createElement('span');
+                cabinNumberDisplay.className = 'cabin-number';
+                cabinNumberDisplay.innerText = i;
+                cabinDiv.appendChild(cabinNumberDisplay);
 
-                currentCharts.statusChart = new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: ['Disponible', 'Ocupada', 'En Break', 'Expirada'],
-                        datasets: [{
-                            data: [statusCounts.available, statusCounts.occupied, statusCounts.out, statusCounts.expired],
-                            backgroundColor: ['#10b981', '#3b82f6', '#f59e0b', '#ef4444'],
-                            borderWidth: 2,
-                            borderColor: '#ffffff',
-                            hoverBorderWidth: 3
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: true,
-                        aspectRatio: 1.5,
-                        plugins: {
-                            legend: {
-                                position: 'bottom',
-                                labels: {
-                                    padding: 15,
-                                    usePointStyle: true,
-                                    font: {
-                                        size: 11
-                                    }
-                                }
-                            },
-                            tooltip: {
-                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                titleColor: '#ffffff',
-                                bodyColor: '#ffffff',
-                                borderColor: '#ffffff',
-                                borderWidth: 1,
-                                callbacks: {
-                                    label: function(context) {
-                                        const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                        const percentage = ((context.parsed / total) * 100).toFixed(1);
-                                        return `${context.label}: ${context.parsed} (${percentage}%)`;
-                                    }
-                                }
-                            }
-                        }
-                    }
+                // Crea el elemento para mostrar el número de habitación
+                const roomNumberSpan = document.createElement('span');
+                roomNumberSpan.className = 'room-number';
+                roomNumberSpan.innerText = '';
+                cabinDiv.appendChild(roomNumberSpan);
+                
+                // Crea el texto del temporizador para mostrar los minutos restantes
+                const timerSpan = document.createElement('span');
+                timerSpan.className = 'timer-text';
+                timerSpan.innerText = '';
+                cabinDiv.appendChild(timerSpan);
+
+                // Almacena los elementos en el objeto de la cabaña
+                cabanas[i].element = cabinDiv;
+                cabanas[i].timerText = timerSpan;
+                cabanas[i].roomNumberElement = roomNumberSpan;
+
+                // Agrega el elemento al DOM
+                cabanasGrid.appendChild(cabinDiv);
+
+                // Agrega un listener para hacer clic en la cabaña
+                cabinDiv.addEventListener('click', () => {
+                    handleCabinClick(i);
                 });
-                
-                console.log('✅ Gráfico de estado actualizado');
-                
-            } catch (error) {
-                console.error('❌ Error al actualizar gráfico de estado:', error);
             }
         }
 
-        // Gráfico de actividad por hora
-        function updateActivityChart() {
-            try {
-                const ctx = document.getElementById('activityChart');
-                if (!ctx) {
-                    console.error('❌ Canvas de actividad no encontrado');
-                    return;
-                }
-                
-                // Destruir gráfico anterior si existe
-                if (currentCharts.activityChart) {
-                    currentCharts.activityChart.destroy();
-                    currentCharts.activityChart = null;
-                }
-
-                // Agrupar logs por hora
-                const hourlyActivity = {};
-                logsData.forEach(log => {
-                    const hour = new Date(log.timestamp).getHours();
-                    hourlyActivity[hour] = (hourlyActivity[hour] || 0) + 1;
-                });
-
-                const labels = Array.from({length: 24}, (_, i) => `${i}:00`);
-                const data = labels.map(hour => hourlyActivity[parseInt(hour)] || 0);
-
-                console.log('📊 Datos para gráfico de actividad:', { labels, data });
-
-                currentCharts.activityChart = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Actividades por Hora',
-                            data: data,
-                            borderColor: '#667eea',
-                            backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                            borderWidth: 3,
-                            tension: 0.4,
-                            fill: true,
-                            pointBackgroundColor: '#667eea',
-                            pointBorderColor: '#ffffff',
-                            pointBorderWidth: 2,
-                            pointRadius: 4,
-                            pointHoverRadius: 6
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: true,
-                        aspectRatio: 2,
-                        plugins: {
-                            legend: {
-                                display: true,
-                                position: 'top',
-                                labels: {
-                                    padding: 15,
-                                    usePointStyle: true
-                                }
-                            },
-                            tooltip: {
-                                mode: 'index',
-                                intersect: false,
-                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                titleColor: '#ffffff',
-                                bodyColor: '#ffffff',
-                                borderColor: '#667eea',
-                                borderWidth: 1
-                            }
-                        },
-                        scales: {
-                            x: {
-                                title: {
-                                    display: true,
-                                    text: 'Hora del Día',
-                                    font: {
-                                        size: 12,
-                                        weight: 'bold'
-                                    }
-                                },
-                                ticks: {
-                                    maxTicksLimit: 12,
-                                    maxRotation: 0
-                                },
-                                grid: {
-                                    color: 'rgba(0, 0, 0, 0.1)'
-                                }
-                            },
-                            y: {
-                                beginAtZero: true,
-                                title: {
-                                    display: true,
-                                    text: 'Número de Actividades',
-                                    font: {
-                                        size: 12,
-                                        weight: 'bold'
-                                    }
-                                },
-                                ticks: {
-                                    stepSize: 1
-                                },
-                                grid: {
-                                    color: 'rgba(0, 0, 0, 0.1)'
-                                }
-                            }
-                        },
-                        interaction: {
-                            mode: 'nearest',
-                            axis: 'x',
-                            intersect: false
-                        },
-                        elements: {
-                            point: {
-                                hoverRadius: 6,
-                                radius: 4
-                            }
-                        }
-                    }
-                });
-                
-                console.log('✅ Gráfico de actividad actualizado');
-                
-            } catch (error) {
-                console.error('❌ Error al actualizar gráfico de actividad:', error);
-            }
-        }
-
-        // Gráfico de uso diario
-        function updateDailyUsageChart() {
-            const ctx = document.getElementById('dailyUsageChart');
-            if (currentCharts.dailyUsageChart) {
-                currentCharts.dailyUsageChart.destroy();
-            }
-
-            // Agrupar por día de la semana
-            const dailyUsage = {};
-            logsData.forEach(log => {
-                const day = new Date(log.timestamp).toLocaleDateString('es-ES', { weekday: 'long' });
-                dailyUsage[day] = (dailyUsage[day] || 0) + 1;
-            });
-
-            const labels = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
-            const data = labels.map(day => dailyUsage[day] || 0);
-
-                            currentCharts.dailyUsageChart = new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: 'Actividades por Día',
-                            data: data,
-                            backgroundColor: [
-                                '#10b981', '#059669', '#047857', '#065f46', '#064e3b', '#022c22', '#012a16'
-                            ],
-                            borderColor: '#ffffff',
-                            borderWidth: 2,
-                            borderRadius: 6,
-                            borderSkipped: false
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: true,
-                        aspectRatio: 2,
-                        plugins: {
-                            legend: {
-                                display: true,
-                                position: 'top',
-                                labels: {
-                                    padding: 15,
-                                    usePointStyle: true
-                                }
-                            },
-                            tooltip: {
-                                backgroundColor: 'rgba(0, 0, 0, 0.8)',
-                                titleColor: '#ffffff',
-                                bodyColor: '#ffffff',
-                                borderColor: '#ffffff',
-                                borderWidth: 1,
-                                callbacks: {
-                                    label: function(context) {
-                                        return `${context.label}: ${context.parsed} actividades`;
-                                    }
-                                }
-                            }
-                        },
-                        scales: {
-                            x: {
-                                title: {
-                                    display: true,
-                                    text: 'Día de la Semana',
-                                    font: {
-                                        size: 12,
-                                        weight: 'bold'
-                                    }
-                                },
-                                ticks: {
-                                    maxRotation: 0
-                                },
-                                grid: {
-                                    color: 'rgba(0, 0, 0, 0.1)'
-                                }
-                            },
-                            y: {
-                                beginAtZero: true,
-                                title: {
-                                    display: true,
-                                    text: 'Número de Actividades',
-                                    font: {
-                                        size: 12,
-                                        weight: 'bold'
-                                    }
-                                },
-                                ticks: {
-                                    stepSize: 1
-                                },
-                                grid: {
-                                    color: 'rgba(0, 0, 0, 0.1)'
-                                }
-                            }
-                        }
-                    }
-                });
-        }
-
-        // Gráfico de duración de breaks
-        function updateBreakDurationChart() {
-            const ctx = document.getElementById('breakDurationChart');
-            if (currentCharts.breakDurationChart) {
-                currentCharts.breakDurationChart.destroy();
-            }
-
-            // Calcular duraciones de breaks
-            const breakDurations = [];
-            logsData.forEach(log => {
-                if (log.action === 'out' && log.details && log.details.startTime) {
-                    const start = new Date(log.details.startTime);
-                    const end = new Date(log.timestamp);
-                    const duration = Math.round((end - start) / (1000 * 60)); // en minutos
-                    if (duration > 0 && duration <= 60) {
-                        breakDurations.push(duration);
-                    }
-                }
-            });
-
-            // Agrupar por rangos de tiempo
-            const ranges = ['0-15m', '16-30m', '31-45m', '46-60m'];
-            const data = ranges.map((range, index) => {
-                const min = index * 15;
-                const max = (index + 1) * 15;
-                return breakDurations.filter(d => d > min && d <= max).length;
-            });
-
-            currentCharts.breakDurationChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: ranges,
-                    datasets: [{
-                        label: 'Cabañas',
-                        data: data,
-                        backgroundColor: '#f59e0b'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-        }
-
-        // Gráfico de actividad por habitación
-        function updateRoomActivityChart() {
-            const ctx = document.getElementById('roomActivityChart');
-            if (currentCharts.roomActivityChart) {
-                currentCharts.roomActivityChart.destroy();
-            }
-
-            // Contar actividad por habitación
-            const roomActivity = {};
-            logsData.forEach(log => {
-                if (log.roomNumber) {
-                    roomActivity[log.roomNumber] = (roomActivity[log.roomNumber] || 0) + 1;
-                }
-            });
-
-            // Top 10 habitaciones más activas
-            const sortedRooms = Object.entries(roomActivity)
-                .sort(([,a], [,b]) => b - a)
-                .slice(0, 10);
-
-            const labels = sortedRooms.map(([room]) => `Habitación ${room}`);
-            const data = sortedRooms.map(([,count]) => count);
-
-            currentCharts.roomActivityChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Actividades',
-                        data: data,
-                        backgroundColor: '#3b82f6'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    indexAxis: 'y',
-                    scales: {
-                        x: {
-                            beginAtZero: true
-                        }
-                    }
-                }
-            });
-        }
-
-        // Funciones de filtrado
-        window.filterCabanas = function() {
-            try {
-                const searchTerm = document.getElementById('searchCabanas').value.toLowerCase();
-                const statusFilter = document.getElementById('filterStatus').value;
-                
-                console.log('🔍 Filtrando cabañas:', { searchTerm, statusFilter });
-                
-                // Si no hay datos de Firebase, generar 18 cabañas por defecto para filtrar
-                let cabanasToFilter = cabanasData;
-                if (Object.keys(cabanasData).length === 0) {
-                    console.log('📋 Generando 18 cabañas por defecto para filtrado...');
-                    cabanasToFilter = {};
-                    for (let i = 1; i <= 18; i++) {
-                        cabanasToFilter[i] = {
-                            status: 'available',
-                            roomNumber: null,
-                            startTime: null,
-                            lastUpdated: null
-                        };
-                    }
-                }
-                
-                const filteredCabanas = Object.entries(cabanasToFilter).filter(([id, cabana]) => {
-                    const matchesSearch = id.toString().toLowerCase().includes(searchTerm) || 
-                                        (cabana.roomNumber && cabana.roomNumber.toString().toLowerCase().includes(searchTerm));
-                    const matchesStatus = !statusFilter || cabana.status === statusFilter;
-                    return matchesSearch && matchesStatus;
-                });
-
-                console.log(`✅ Filtro aplicado: ${filteredCabanas.length} cabañas encontradas`);
-                updateCabanasTable(filteredCabanas);
-                
-                // Mostrar mensaje de resultado
-                if (searchTerm || statusFilter) {
-                    showSuccess(`Filtro aplicado: ${filteredCabanas.length} cabañas encontradas`);
-                }
-                
-            } catch (error) {
-                console.error('❌ Error al filtrar cabañas:', error);
-                showError('Error al aplicar filtros');
-            }
-        };
-
-        window.clearFilters = function() {
-            try {
-                console.log('🧹 Limpiando filtros de cabañas...');
-                
-                document.getElementById('searchCabanas').value = '';
-                document.getElementById('filterStatus').value = '';
-                
-                // Mostrar todas las 18 cabañas
-                updateCabanasTable();
-                showSuccess('Filtros limpiados - Mostrando todas las 18 cabañas');
-                
-                console.log('✅ Filtros de cabañas limpiados');
-                
-            } catch (error) {
-                console.error('❌ Error al limpiar filtros:', error);
-                showError('Error al limpiar filtros');
-            }
-        };
-
-        window.filterLogs = function() {
-            try {
-                const dateFrom = document.getElementById('logDateFrom').value;
-                const dateTo = document.getElementById('logDateTo').value;
-                const actionFilter = document.getElementById('logActionFilter').value;
-                
-                console.log('🔍 Filtrando logs:', { dateFrom, dateTo, actionFilter });
-                
-                let filteredLogs = logsData;
-                
-                if (dateFrom) {
-                    filteredLogs = filteredLogs.filter(log => 
-                        new Date(log.timestamp) >= new Date(dateFrom)
-                    );
-                }
-                
-                if (dateTo) {
-                    filteredLogs = filteredLogs.filter(log => 
-                        new Date(log.timestamp) <= new Date(dateTo + 'T23:59:59')
-                    );
-                }
-                
-                if (actionFilter) {
-                    filteredLogs = filteredLogs.filter(log => log.action === actionFilter);
-                }
-                
-                console.log(`✅ Filtro de logs aplicado: ${filteredLogs.length} registros encontrados`);
-                updateLogsTable(filteredLogs);
-                
-                // Mostrar mensaje de resultado
-                if (dateFrom || dateTo || actionFilter) {
-                    showSuccess(`Filtro aplicado: ${filteredLogs.length} logs encontrados`);
-                }
-                
-            } catch (error) {
-                console.error('❌ Error al filtrar logs:', error);
-                showError('Error al aplicar filtros de logs');
-            }
-        };
-
-        window.clearLogFilters = function() {
-            try {
-                console.log('🧹 Limpiando filtros de logs...');
-                
-                document.getElementById('logDateFrom').value = '';
-                document.getElementById('logDateTo').value = '';
-                document.getElementById('logActionFilter').value = '';
-                
-                updateLogsTable();
-                showSuccess('Filtros de logs limpiados');
-                
-                console.log('✅ Filtros de logs limpiados');
-                
-            } catch (error) {
-                console.error('❌ Error al limpiar filtros de logs:', error);
-                showError('Error al limpiar filtros de logs');
-            }
-        };
-
-        // Funciones de reportes
-        window.generateReport = function(format) {
-            try {
-                const dateFrom = document.getElementById('reportDateFrom').value;
-                const dateTo = document.getElementById('reportDateTo').value;
-                const reportType = document.getElementById('reportType').value;
-                
-                console.log('📋 Generando reporte:', { format, dateFrom, dateTo, reportType });
-                
-                if (!dateFrom || !dateTo) {
-                    showError('Por favor selecciona un rango de fechas');
-                    return;
-                }
-                
-                // Generar reporte
-                const reportData = generateReportData(dateFrom, dateTo, reportType);
-                showReportPreview(reportData);
-                
-                // Exportar según formato
-                if (format === 'pdf') {
-                    exportToPDF(reportData);
-                } else if (format === 'excel') {
-                    exportToExcel(reportData);
-                } else if (format === 'csv') {
-                    exportToCSV(reportData);
-                }
-                
-                showSuccess(`Reporte ${format.toUpperCase()} generado exitosamente`);
-                
-            } catch (error) {
-                console.error('❌ Error al generar reporte:', error);
-                showError('Error al generar el reporte');
-            }
-        };
-
-        // Generar datos del reporte
-        function generateReportData(dateFrom, dateTo, reportType) {
-            const filteredLogs = logsData.filter(log => {
-                const logDate = new Date(log.timestamp);
-                return logDate >= new Date(dateFrom) && logDate <= new Date(dateTo + 'T23:59:59');
-            });
+        // Manejador del clic en una cabaña
+        function handleCabinClick(cabinNumber) {
+            currentCabinNumber = cabinNumber;
+            const cabin = cabanas[cabinNumber];
             
-            const reportData = {
-                dateFrom,
-                dateTo,
-                reportType,
-                totalActivities: filteredLogs.length,
-                statusBreakdown: {},
-                roomActivity: {},
-                hourlyDistribution: {},
-                averageBreakDuration: 0
-            };
-            
-            // Análisis por estado
-            filteredLogs.forEach(log => {
-                reportData.statusBreakdown[log.action] = (reportData.statusBreakdown[log.action] || 0) + 1;
+            modalTitle.textContent = `Cabaña ${cabinNumber}`;
+
+            if (cabin.status === 'available') {
+                // Muestra el contenido para asignar
+                assignContent.classList.remove('hidden');
+                manageContent.classList.add('hidden');
+                roomNumberInput.value = '';
+            } else {
+                // Muestra el contenido para gestionar
+                assignContent.classList.add('hidden');
+                manageContent.classList.remove('hidden');
+                occupiedRoomNumber.textContent = cabin.roomNumber;
                 
-                if (log.roomNumber) {
-                    reportData.roomActivity[log.roomNumber] = (reportData.roomActivity[log.roomNumber] || 0) + 1;
+                // Decide qué botones mostrar en el modal según el estado
+                startTimerBtn.classList.add('hidden');
+                endBreakBtn.classList.add('hidden');
+                removeItemsBtn.classList.add('hidden');
+                unassignBtn.classList.add('hidden');
+
+                if (cabin.status === 'occupied') {
+                    startTimerBtn.classList.remove('hidden');
+                    unassignBtn.classList.remove('hidden');
+                } else if (cabin.status === 'out') {
+                    endBreakBtn.classList.remove('hidden');
+                    unassignBtn.classList.remove('hidden');
+                } else if (cabin.status === 'expired') {
+                    removeItemsBtn.classList.remove('hidden');
+                    unassignBtn.classList.remove('hidden');
                 }
-                
-                const hour = new Date(log.timestamp).getHours();
-                reportData.hourlyDistribution[hour] = (reportData.hourlyDistribution[hour] || 0) + 1;
-            });
-            
-            return reportData;
+            }
+            showModal();
         }
 
-        // Mostrar vista previa del reporte
-        function showReportPreview(reportData) {
-            const reportContent = document.getElementById('reportContent');
+        // Función para cargar datos de cabañas desde Firebase
+        async function loadCabanasFromFirebase() {
+            console.log('🔍 === INICIO CARGA DE FIREBASE ===');
+            console.log('isFirebaseReady:', isFirebaseReady);
+            console.log('db:', !!db);
+            console.log('cabanasRef:', !!cabanasRef);
             
-            let html = `
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <h4 class="font-bold mb-2">Resumen General</h4>
-                        <p><strong>Período:</strong> ${new Date(reportData.dateFrom).toLocaleDateString()} - ${new Date(reportData.dateTo).toLocaleDateString()}</p>
-                        <p><strong>Total Actividades:</strong> ${reportData.totalActivities}</p>
-                        <p><strong>Tipo de Reporte:</strong> ${reportData.reportType}</p>
-                    </div>
+            if (!isFirebaseReady) {
+                console.warn('❌ Firebase no está listo, saltando carga');
+                return;
+            }
+            
+            try {
+                console.log('🔄 Cargando datos de Firebase...');
+                console.log('📍 Ruta de datos:', CABANAS_PATH);
+                console.log('🔗 Creando referencia:', ref(db, CABANAS_PATH));
+                
+                console.log('📡 Ejecutando get()...');
+                const snapshot = await get(ref(db, CABANAS_PATH));
+                console.log('📸 Snapshot recibido:', snapshot);
+                console.log('📊 Snapshot existe:', snapshot.exists());
+                console.log('📦 Snapshot val:', snapshot.val());
+                
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    console.log('📊 Datos completos de Firebase:', data);
+                    console.log('🔢 Número de cabañas en Firebase:', Object.keys(data).length);
                     
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <h4 class="font-bold mb-2">Desglose por Estado</h4>
-                        ${Object.entries(reportData.statusBreakdown).map(([status, count]) => 
-                            `<p><strong>${getStatusText(status)}:</strong> ${count}</p>`
-                        ).join('')}
-                    </div>
-                </div>
-            `;
+                    // Contador de cabañas actualizadas
+                    let updatedCount = 0;
+                    let errorCount = 0;
+                    
+                    // Procesar cada cabaña encontrada en Firebase
+                    Object.keys(data).forEach(cabinId => {
+                        const cabinData = data[cabinId];
+                        const cabinNumber = parseInt(cabinId);
+                        
+                        console.log(`🏠 Procesando cabaña ${cabinNumber}:`, {
+                            rawData: cabinData,
+                            parsedNumber: cabinNumber,
+                            existsInArray: !!cabanas[cabinNumber]
+                        });
+                        
+                        if (cabanas[cabinNumber]) {
+                            // Guardar estado anterior para comparación
+                            const previousStatus = cabanas[cabinNumber].status;
+                            const previousRoom = cabanas[cabinNumber].roomNumber;
+                            
+                            // IMPORTANTE: Preservar los elementos del DOM
+                            const preservedElement = cabanas[cabinNumber].element;
+                            const preservedTimerText = cabanas[cabinNumber].timerText;
+                            const preservedRoomNumberElement = cabanas[cabinNumber].roomNumberElement;
+                            
+                            // Actualizar estado de la cabaña
+                            cabanas[cabinNumber].status = cabinData.status || 'available';
+                            cabanas[cabinNumber].roomNumber = cabinData.roomNumber || null;
+                            cabanas[cabinNumber].startTime = cabinData.startTime || null;
+                            cabanas[cabinNumber].lastUpdated = cabinData.lastUpdated || null;
+                            cabanas[cabinNumber].updatedBy = cabinData.updatedBy || null;
+                            
+                            // RESTAURAR los elementos del DOM
+                            cabanas[cabinNumber].element = preservedElement;
+                            cabanas[cabinNumber].timerText = preservedTimerText;
+                            cabanas[cabinNumber].roomNumberElement = preservedRoomNumberElement;
+                            
+                            console.log(`✅ Cabaña ${cabinNumber} actualizada:`, {
+                                previous: { status: previousStatus, room: previousRoom },
+                                current: { 
+                                    status: cabanas[cabinNumber].status, 
+                                    room: cabanas[cabinNumber].roomNumber 
+                                },
+                                domElements: {
+                                    element: !!preservedElement,
+                                    timerText: !!preservedTimerText,
+                                    roomNumberElement: !!preservedRoomNumberElement
+                                }
+                            });
+                            
+                            // Actualizar UI inmediatamente
+                            updateCabinUI(cabinNumber);
+                            
+                            // Restaurar temporizador si está en estado 'out'
+                            if (cabinData.status === 'out' && cabinData.startTime) {
+                                console.log(`⏰ Restaurando temporizador para cabaña ${cabinNumber}`);
+                                restoreTimer(cabinNumber, cabinData.roomNumber, cabinData.startTime);
+                            }
+                            
+                            updatedCount++;
+                        } else {
+                            console.error(`❌ Cabaña ${cabinNumber} no encontrada en el array local`);
+                            errorCount++;
+                        }
+                    });
+                    
+                    console.log(`📈 Resumen de carga: ${updatedCount} actualizadas, ${errorCount} errores`);
+                    statusMessage.textContent = `✅ ${updatedCount} cabañas cargadas desde Firebase`;
+                    
+                    // Verificar que las cabañas se hayan actualizado correctamente
+                    setTimeout(() => {
+                        console.log('🔍 Verificación post-carga de cabañas:');
+                        for (let i = 1; i <= 5; i++) { // Solo verificar las primeras 5
+                            if (cabanas[i]) {
+                                console.log(`Cabaña ${i}:`, {
+                                    status: cabanas[i].status,
+                                    roomNumber: cabanas[i].roomNumber,
+                                    elementClasses: cabanas[i].element ? cabanas[i].element.className : 'N/A'
+                                });
+                            }
+                        }
+                    }, 1000);
+                    
+                } else {
+                    console.log('📭 No hay datos en Firebase, usando estado por defecto');
+                    statusMessage.textContent = '✅ Sistema inicializado. No hay datos previos en Firebase.';
+                }
+                
+            } catch (error) {
+                console.error('❌ Error al cargar datos de Firebase:', error);
+                console.error('🔍 Detalles del error:', {
+                    message: error.message,
+                    code: error.code,
+                    stack: error.stack
+                });
+                statusMessage.textContent = '⚠️ Error al cargar datos de Firebase. Usando estado por defecto.';
+            }
+        }
+
+        // Función para configurar listener en tiempo real
+        function setupRealtimeListener() {
+            if (!isFirebaseReady) return;
             
-            reportContent.innerHTML = html;
+            onValue(cabanasRef, (snapshot) => {
+                if (snapshot.exists()) {
+                    const data = snapshot.val();
+                    Object.keys(data).forEach(cabinId => {
+                        const cabinData = data[cabinId];
+                        const cabinNumber = parseInt(cabinId);
+                        
+                        if (cabanas[cabinNumber] && cabinData.lastUpdated !== cabanas[cabinNumber].lastUpdated) {
+                            // Solo actualizar si hay cambios
+                            cabanas[cabinNumber].status = cabinData.status || 'available';
+                            cabanas[cabinNumber].roomNumber = cabinData.roomNumber || null;
+                            cabanas[cabinNumber].startTime = cabinData.startTime || null;
+                            cabanas[cabinNumber].lastUpdated = cabinData.lastUpdated || null;
+                            cabanas[cabinNumber].updatedBy = cabinData.updatedBy || null;
+                            
+                            updateCabinUI(cabinNumber);
+                        }
+                    });
+                }
+            });
         }
 
-        // Funciones de exportación
-        function exportToPDF(reportData) {
-            // Implementar exportación a PDF
-            showSuccess('Reporte PDF generado (funcionalidad en desarrollo)');
-        }
-
-        function exportToExcel(reportData) {
-            // Implementar exportación a Excel
-            showSuccess('Reporte Excel generado (funcionalidad en desarrollo)');
-        }
-
-        function exportToCSV(reportData) {
-            // Implementar exportación a CSV
-            showSuccess('Reporte CSV generado (funcionalidad en desarrollo)');
-        }
-
-        // Funciones de utilidad
-        window.showTab = function(tabName) {
-            console.log(`🔄 Cambiando a pestaña: ${tabName}`);
+        // Función para guardar estado de cabaña en Firebase
+        async function saveCabinToFirebase(cabinNumber, updateData = {}) {
+            if (!isFirebaseReady) return;
             
             try {
-                // Ocultar todas las pestañas
-                document.querySelectorAll('.tab-content').forEach(tab => {
-                    tab.classList.add('hidden');
-                    tab.classList.remove('active');
-                });
+                const cabinRef = ref(db, `${CABANAS_PATH}/${cabinNumber}`);
+                const dataToSave = {
+                    ...cabanas[cabinNumber],
+                    ...updateData,
+                    lastUpdated: new Date().toISOString(),
+                    updatedBy: authUser ? authUser.uid : 'anonymous'
+                };
                 
-                // Desactivar todos los botones
-                document.querySelectorAll('.tab-btn').forEach(btn => {
-                    btn.classList.remove('bg-blue-600', 'text-white', 'active');
-                    btn.classList.add('bg-gray-200', 'text-gray-700');
-                });
+                // Remover propiedades que no queremos guardar
+                delete dataToSave.element;
+                delete dataToSave.timerText;
+                delete dataToSave.roomNumberElement;
+                delete dataToSave.timerId;
+                delete dataToSave.countdownInterval;
                 
-                // Mostrar pestaña seleccionada
-                const selectedTab = document.getElementById(tabName);
-                if (selectedTab) {
-                    selectedTab.classList.remove('hidden');
-                    selectedTab.classList.add('active');
-                    console.log(`✅ Pestaña ${tabName} mostrada`);
+                await set(cabinRef, dataToSave);
+                
+                // Crear log de la acción
+                await createLog(cabinNumber, updateData);
+                
+            } catch (error) {
+                console.error('Error al guardar en Firebase:', error);
+                statusMessage.textContent = '⚠️ Error al sincronizar con Firebase. Los cambios se guardaron localmente.';
+            }
+        }
+
+        // Función para crear logs de acciones
+        async function createLog(cabinNumber, action) {
+            if (!isFirebaseReady) return;
+            
+            try {
+                const logRef = ref(db, LOGS_PATH);
+                const logData = {
+                    cabinNumber,
+                    action: action.status || 'update',
+                    roomNumber: action.roomNumber || cabanas[cabinNumber].roomNumber,
+                    timestamp: new Date().toISOString(),
+                    userId: authUser ? authUser.uid : 'anonymous',
+                    details: action
+                };
+                
+                await push(logRef, logData);
+                console.log(`📝 Log creado para cabaña ${cabinNumber}:`, logData);
+            } catch (error) {
+                console.error('Error al crear log:', error);
+            }
+        }
+
+        // Función específica para crear logs de breaks
+        async function createBreakLog(cabinNumber, breakType, startTime = null, endTime = null, duration = null) {
+            if (!isFirebaseReady) return;
+            
+            try {
+                const logRef = ref(db, LOGS_PATH);
+                const logData = {
+                    cabinNumber,
+                    action: 'break',
+                    breakType: breakType, // 'started', 'completed', 'expired'
+                    roomNumber: cabanas[cabinNumber].roomNumber,
+                    startTime: startTime,
+                    endTime: endTime,
+                    duration: duration, // en minutos
+                    timestamp: new Date().toISOString(),
+                    userId: authUser ? authUser.uid : 'anonymous'
+                };
+                
+                await push(logRef, logData);
+                console.log(`⏰ Log de break creado para cabaña ${cabinNumber}:`, logData);
+            } catch (error) {
+                console.error('Error al crear log de break:', error);
+            }
+        }
+
+        // Función para restaurar temporizador desde Firebase
+        function restoreTimer(cabinNumber, roomNumber, startTime) {
+            const cabin = cabanas[cabinNumber];
+            
+            // Verificar que la cabaña y sus elementos existan
+            if (!cabin) {
+                console.error(`❌ Cabaña ${cabinNumber} no encontrada en restoreTimer`);
+                return;
+            }
+            
+            if (!cabin.timerText) {
+                console.error(`❌ Timer text no encontrado para cabaña ${cabinNumber} en restoreTimer`);
+                return;
+            }
+            
+            const elapsed = new Date().getTime() - new Date(startTime).getTime();
+            const remaining = TIMER_DURATION_MS - elapsed;
+            
+            if (remaining > 0) {
+                // Restaurar temporizador
+                cabin.status = 'out';
+                cabin.startTime = new Date(startTime).getTime();
+                cabin.roomNumber = roomNumber;
+                updateCabinUI(cabinNumber);
+                
+                // Configurar temporizador
+                cabin.timerId = setTimeout(() => {
+                    console.log(`⏰ ⏰ ⏰ TIMER RESTAURADO EXPIRADO para cabaña ${cabinNumber} ⏰ ⏰ ⏰`);
+                    cabin.status = 'expired';
+                    updateCabinUI(cabinNumber);
+                    saveCabinToFirebase(cabinNumber, { status: 'expired' });
+                    
+                    // Mostrar notificación de expiración
+                    console.log(`🔔 Mostrando notificación de expiración (restaurada)...`);
+                    showNotification(`¡Tiempo Expirado! Cabaña ${cabinNumber}`, `La cabaña de la Habitación ${roomNumber} ha excedido el tiempo de break.`);
+                    
+                    statusMessage.textContent = `¡El tiempo para la Cabaña ${cabinNumber} (Habitación ${roomNumber}) ha expirado!`;
+                }, remaining);
+                
+                // Configurar countdown
+                cabin.countdownInterval = setInterval(() => {
+                    if (cabin.status !== 'out') {
+                        clearInterval(cabin.countdownInterval);
+                        cabin.countdownInterval = null;
+                        return;
+                    }
+                    
+                    if (cabin.timerText && cabin.startTime) {
+                        const currentElapsed = new Date().getTime() - cabin.startTime;
+                        const currentRemaining = TIMER_DURATION_MS - currentElapsed;
+                        const minutes = Math.floor(currentRemaining / 60000);
+                        const seconds = Math.floor((currentRemaining % 60000) / 1000);
+                        cabin.timerText.textContent = `${minutes}m ${seconds}s`;
+                    } else {
+                        console.error(`❌ Timer text o startTime no encontrado para cabaña ${cabinNumber} en restoreTimer countdown`);
+                    }
+                }, 1000);
+                
+            } else {
+                // El tiempo ya expiró
+                cabin.status = 'expired';
+                updateCabinUI(cabinNumber);
+                saveCabinToFirebase(cabinNumber, { status: 'expired' });
+                
+                // Crear log de break expirado (restaurado)
+                createBreakLog(cabinNumber, 'expired', new Date(startTime).toISOString(), new Date().toISOString(), 60);
+            }
+        }
+
+        // Función para actualizar la interfaz de una cabaña
+        function updateCabinUI(cabinNumber) {
+            const cabin = cabanas[cabinNumber];
+            if (!cabin || !cabin.element) {
+                console.warn(`⚠️ Cabaña ${cabinNumber} no encontrada o sin elemento`);
+                return;
+            }
+
+            const cabinElement = cabin.element;
+            const timerSpan = cabin.timerText;
+            const roomNumberSpan = cabin.roomNumberElement;
+
+            console.log(`🔄 Actualizando UI de cabaña ${cabinNumber}:`, {
+                status: cabin.status,
+                roomNumber: cabin.roomNumber,
+                startTime: cabin.startTime,
+                elementExists: !!cabinElement,
+                timerSpanExists: !!timerSpan,
+                roomNumberSpanExists: !!roomNumberSpan
+            });
+
+            // Verificar que los elementos existan
+            if (!cabinElement || !timerSpan || !roomNumberSpan) {
+                console.error(`❌ Elementos faltantes para cabaña ${cabinNumber}:`, {
+                    element: !!cabinElement,
+                    timerSpan: !!timerSpan,
+                    roomNumberSpan: !!roomNumberSpan
+                });
+                return;
+            }
+
+            // Remueve las clases de estado existentes
+            cabinElement.classList.remove('available', 'occupied', 'out', 'expired');
+
+            // Aplica las clases y el texto del temporizador según el estado
+            if (cabin.status === 'available') {
+                cabinElement.classList.add('available');
+                timerSpan.classList.remove('visible');
+                roomNumberSpan.classList.remove('visible');
+                roomNumberSpan.innerText = '';
+                timerSpan.innerText = '';
+                
+                // Asegurar que no haya temporizadores activos para este estado
+                if (cabin.timerId || cabin.countdownInterval) {
+                    console.log(`⏰ Limpiando temporizadores activos para cabaña ${cabinNumber} en estado 'available'`);
+                    if (cabin.timerId) {
+                        clearTimeout(cabin.timerId);
+                        cabin.timerId = null;
+                    }
+                    if (cabin.countdownInterval) {
+                        clearInterval(cabin.countdownInterval);
+                        cabin.countdownInterval = null;
+                    }
+                }
+            } else if (cabin.status === 'occupied') {
+                cabinElement.classList.add('occupied');
+                timerSpan.classList.remove('visible');
+                roomNumberSpan.classList.add('visible');
+                roomNumberSpan.innerText = cabin.roomNumber || '';
+                timerSpan.innerText = '';
+                
+                // Asegurar que no haya temporizadores activos para este estado
+                if (cabin.timerId || cabin.countdownInterval) {
+                    console.log(`⏰ Limpiando temporizadores activos para cabaña ${cabinNumber} en estado 'occupied'`);
+                    if (cabin.timerId) {
+                        clearTimeout(cabin.timerId);
+                        cabin.timerId = null;
+                    }
+                    if (cabin.countdownInterval) {
+                        clearInterval(cabin.countdownInterval);
+                        cabin.countdownInterval = null;
+                    }
+                }
+            } else if (cabin.status === 'out') {
+                cabinElement.classList.add('out');
+                timerSpan.classList.add('visible');
+                roomNumberSpan.classList.add('visible');
+                roomNumberSpan.innerText = cabin.roomNumber || '';
+                
+                // NO sobrescribir el timer si ya tiene contenido (evita que se resetee)
+                if (!timerSpan.innerText || timerSpan.innerText === '' || timerSpan.innerText === 'NaNm NaNs') {
+                    console.log(`🔄 Timer vacío o inválido para cabaña ${cabinNumber}, calculando tiempo...`);
+                    // Solo calcular tiempo si no hay texto válido ya establecido
+                    if (cabin.startTime) {
+                        const elapsed = new Date().getTime() - new Date(cabin.startTime).getTime();
+                        const remaining = TIMER_DURATION_MS - elapsed;
+                        if (remaining > 0) {
+                            const minutes = Math.floor(remaining / 60000);
+                            const seconds = Math.floor((remaining % 60000) / 1000);
+                            timerSpan.innerText = `${minutes}m ${seconds}s`;
+                            console.log(`⏰ Timer calculado: ${minutes}m ${seconds}s`);
+                        } else {
+                            timerSpan.innerText = '0m 0s';
+                            console.log(`⏰ Timer expirado: 0m 0s`);
+                        }
+                    } else {
+                        console.log(`⚠️ No hay startTime para cabaña ${cabinNumber}`);
+                        // Establecer tiempo por defecto si no hay startTime
+                        const initialMinutes = Math.floor(TIMER_DURATION_MS / 60000);
+                        const initialSeconds = Math.floor((TIMER_DURATION_MS % 60000) / 1000);
+                        timerSpan.innerText = `${initialMinutes}m ${initialSeconds}s`;
+                        console.log(`⏰ Timer por defecto establecido: ${initialMinutes}m ${initialSeconds}s`);
+                    }
                 } else {
-                    console.error(`❌ Pestaña ${tabName} no encontrada`);
+                    console.log(`✅ Timer preservado para cabaña ${cabinNumber}: ${timerSpan.innerText}`);
+                }
+            } else if (cabin.status === 'expired') {
+                cabinElement.classList.add('expired');
+                timerSpan.classList.remove('visible');
+                roomNumberSpan.classList.add('visible');
+                roomNumberSpan.innerText = cabin.roomNumber || '';
+                timerSpan.innerText = '';
+                
+                // Asegurar que no haya temporizadores activos para este estado
+                if (cabin.timerId || cabin.countdownInterval) {
+                    console.log(`⏰ Limpiando temporizadores activos para cabaña ${cabinNumber} en estado 'expired'`);
+                    if (cabin.timerId) {
+                        clearTimeout(cabin.timerId);
+                        cabin.timerId = null;
+                    }
+                    if (cabin.countdownInterval) {
+                        clearInterval(cabin.countdownInterval);
+                        cabin.countdownInterval = null;
+                    }
+                }
+            }
+            
+            // Verificar que la actualización se haya aplicado correctamente
+            const finalClasses = cabinElement.className;
+            const finalRoomText = roomNumberSpan.innerText;
+            const finalTimerText = timerSpan.innerText;
+            
+            console.log(`✅ UI de cabaña ${cabinNumber} actualizada:`, {
+                classes: finalClasses,
+                roomNumberText: finalRoomText,
+                timerText: finalTimerText,
+                statusApplied: finalClasses.includes(cabin.status),
+                roomNumberVisible: finalRoomText !== '',
+                timerVisible: finalTimerText !== ''
+            });
+            
+            // Verificación adicional
+            if (!finalClasses.includes(cabin.status)) {
+                console.warn(`⚠️ Estado no aplicado correctamente para cabaña ${cabinNumber}`);
+            }
+        }
+        
+        // Función para iniciar el temporizador de comida
+        function startTimer(cabinNumber, roomNumber) {
+            const cabin = cabanas[cabinNumber];
+            
+            // Verificar que la cabaña y sus elementos existan
+            if (!cabin) {
+                console.error(`❌ Cabaña ${cabinNumber} no encontrada`);
+                return;
+            }
+            
+            if (!cabin.timerText) {
+                console.error(`❌ Timer text no encontrado para cabaña ${cabinNumber}`);
+                return;
+            }
+            
+            // Si ya hay un temporizador, lo reiniciamos primero
+            if (cabin.timerId) {
+                console.log(`⏰ Limpiando timerId existente para cabaña ${cabinNumber}`);
+                clearTimeout(cabin.timerId);
+                cabin.timerId = null;
+            }
+            
+            // Limpiar también el countdownInterval si existe
+            if (cabin.countdownInterval) {
+                console.log(`⏰ Limpiando countdownInterval existente para cabaña ${cabinNumber}`);
+                clearInterval(cabin.countdownInterval);
+                cabin.countdownInterval = null;
+            }
+            
+            cabin.status = 'out';
+            cabin.startTime = new Date().getTime();
+            cabin.roomNumber = roomNumber;
+            
+            // MOSTRAR TIEMPO INMEDIATAMENTE antes de actualizar UI
+            console.log(`🔍 Debug cabaña ${cabinNumber}:`, {
+                timerText: !!cabin.timerText,
+                timerTextElement: cabin.timerText,
+                timerTextContent: cabin.timerText ? cabin.timerText.textContent : 'N/A',
+                TIMER_DURATION_MS: TIMER_DURATION_MS
+            });
+            
+            if (cabin.timerText) {
+                const initialMinutes = Math.floor(TIMER_DURATION_MS / 60000);
+                const initialSeconds = Math.floor((TIMER_DURATION_MS % 60000) / 1000);
+                cabin.timerText.textContent = `${initialMinutes}m ${initialSeconds}s`;
+                console.log(`⏰ Timer inicial establecido: ${initialMinutes}m ${initialSeconds}s`);
+            } else {
+                console.error(`❌ Timer text no encontrado para cabaña ${cabinNumber}`);
+            }
+            
+            // NO llamar updateCabinUI aquí - ya se estableció el timer manualmente
+            // Solo actualizar las clases CSS sin tocar el contenido del timer
+            const cabinElement = cabin.element;
+            if (cabinElement) {
+                cabinElement.classList.remove('available', 'occupied', 'expired');
+                cabinElement.classList.add('out');
+                
+                // Mostrar timer y room number
+                if (cabin.timerText) cabin.timerText.classList.add('visible');
+                if (cabin.roomNumberElement) cabin.roomNumberElement.classList.add('visible');
+                if (cabin.roomNumberElement) cabin.roomNumberElement.innerText = roomNumber;
+            }
+
+            // Guardar en Firebase
+            saveCabinToFirebase(cabinNumber, { 
+                status: 'out', 
+                startTime: new Date(cabin.startTime).toISOString() 
+            });
+
+            // Crear log de inicio de break
+            createBreakLog(cabinNumber, 'started', new Date(cabin.startTime).toISOString());
+
+            cabin.timerId = setTimeout(() => {
+                console.log(`⏰ ⏰ ⏰ TIMER EXPIRADO para cabaña ${cabinNumber} ⏰ ⏰ ⏰`);
+                cabin.status = 'expired';
+                updateCabinUI(cabinNumber);
+                saveCabinToFirebase(cabinNumber, { status: 'expired' });
+                
+                // Mostrar notificación de expiración con múltiples métodos
+                console.log(`🔔 Mostrando notificación de expiración...`);
+                
+                // Notificación principal (push)
+                showNotification(`🚨 ¡TIEMPO EXPIRADO! Cabaña ${cabinNumber}`, `La cabaña de la Habitación ${roomNumber} ha excedido el tiempo de break.`);
+                
+                // Mensaje en estado con estilo de alerta
+                statusMessage.textContent = `🚨 ¡ALERTA! Tiempo expirado para Cabaña ${cabinNumber} (Habitación ${roomNumber})`;
+                statusMessage.style.backgroundColor = '#fef2f2';
+                statusMessage.style.borderColor = '#ef4444';
+                statusMessage.style.color = '#dc2626';
+                statusMessage.style.animation = 'pulse 1s infinite';
+                
+                // Restaurar estilo después de 15 segundos
+                setTimeout(() => {
+                    statusMessage.style.backgroundColor = '';
+                    statusMessage.style.borderColor = '';
+                    statusMessage.style.color = '';
+                    statusMessage.style.animation = '';
+                }, 15000);
+                
+                // Reproducir sonido de alerta
+                playAlertSound();
+                
+                // Mostrar modal de alerta de emergencia
+                showAlertModal(`🚨 ¡TIEMPO EXPIRADO! Cabaña ${cabinNumber}`, 
+                    `La cabaña de la Habitación ${roomNumber} ha excedido el tiempo de break.\n\n` +
+                    `Por favor, verifica el estado de la cabaña inmediatamente.`
+                );
+                
+                // Limpiar el intervalo del countdown cuando expire
+                if (cabin.countdownInterval) {
+                    clearInterval(cabin.countdownInterval);
+                    cabin.countdownInterval = null;
+                }
+
+                // Crear log de break expirado
+                createBreakLog(cabinNumber, 'expired', new Date(cabin.startTime).toISOString(), new Date().toISOString(), 60);
+            }, TIMER_DURATION_MS);
+            
+            // Guardar la referencia del intervalo para poder limpiarlo después
+            cabin.countdownInterval = setInterval(() => {
+                if (cabin.status !== 'out') {
+                    clearInterval(cabin.countdownInterval);
+                    cabin.countdownInterval = null;
                     return;
                 }
                 
-                // Activar botón correspondiente
-                const activeButton = document.querySelector(`[onclick="showTab('${tabName}')"]`);
-                if (activeButton) {
-                    activeButton.classList.remove('bg-gray-200', 'text-gray-700');
-                    activeButton.classList.add('bg-blue-600', 'text-white', 'active');
-                    console.log(`✅ Botón de ${tabName} activado`);
+                if (cabin.timerText && cabin.startTime) {
+                    const elapsed = new Date().getTime() - cabin.startTime;
+                    const remaining = TIMER_DURATION_MS - elapsed;
+                    const minutes = Math.floor(remaining / 60000);
+                    const seconds = Math.floor((remaining % 60000) / 1000);
+                    cabin.timerText.textContent = `${minutes}m ${seconds}s`;
                 } else {
-                    console.error(`❌ Botón de ${tabName} no encontrado`);
+                    console.error(`❌ Timer text o startTime no encontrado para cabaña ${cabinNumber}`);
                 }
-                
-                // Actualizar gráficos si es necesario
-                if (tabName === 'overview' || tabName === 'analytics') {
-                    console.log(`📊 Actualizando gráficos para ${tabName}`);
-                    setTimeout(() => {
-                        updateCharts();
-                    }, 100);
-                }
-                
-                // Actualizar datos específicos de la pestaña
-                if (tabName === 'cabanas') {
-                    console.log(`🏠 Actualizando tabla de cabañas`);
-                    updateCabanasTable();
-                } else if (tabName === 'logs') {
-                    console.log(`📝 Actualizando tabla de logs`);
-                    updateLogsTable();
-                } else if (tabName === 'reports') {
-                    console.log(`📋 Preparando sistema de reportes`);
-                    prepareReportsTab();
-                }
-                
-                console.log(`🎯 Pestaña ${tabName} activada correctamente`);
-                
-            } catch (error) {
-                console.error(`❌ Error al cambiar a pestaña ${tabName}:`, error);
-            }
-        };
+            }, 1000);
 
-        function showStatus(message, type = 'info') {
-            const statusMessage = document.getElementById('statusMessage');
-            const statusText = document.getElementById('statusText');
+            statusMessage.textContent = `Temporizador iniciado para la Cabaña ${cabinNumber} (Habitación ${roomNumber}). Tiempo: ${TIMER_DURATION_MINUTES} minutos (1 hora).`;
+        }
+
+        // Función para desocupar una cabaña
+        function unassignCabin(cabinNumber) {
+            const cabin = cabanas[cabinNumber];
             
-            if (statusMessage && statusText) {
-                statusText.textContent = message;
-                
-                // Remover clases anteriores
-                statusMessage.className = 'mx-6 mb-4 p-4 rounded-lg';
-                
-                // Agregar clases según tipo
-                if (type === 'error') {
-                    statusMessage.classList.add('bg-red-100', 'border-red-400', 'text-red-700');
-                } else if (type === 'success') {
-                    statusMessage.classList.add('bg-green-100', 'border-green-400', 'text-green-700');
+            console.log(`🔄 Desocupando cabaña ${cabinNumber}...`);
+            
+            // Limpiar TODOS los temporizadores ANTES de cambiar el estado
+            if (cabin.timerId) {
+                console.log(`⏰ Limpiando timerId para cabaña ${cabinNumber}`);
+                clearTimeout(cabin.timerId);
+                cabin.timerId = null;
+            }
+            
+            // Limpiar el intervalo del countdown si existe
+            if (cabin.countdownInterval) {
+                console.log(`⏰ Limpiando countdownInterval para cabaña ${cabinNumber}`);
+                clearInterval(cabin.countdownInterval);
+                cabin.countdownInterval = null;
+            }
+
+            // Limpiar el texto del timer en la UI
+            if (cabin.timerText) {
+                cabin.timerText.textContent = '';
+                cabin.timerText.classList.remove('visible');
+                console.log(`⏰ Timer text limpiado para cabaña ${cabinNumber}`);
+            }
+
+            // Cambiar estado después de limpiar temporizadores
+            cabin.status = 'available';
+            cabin.startTime = null;
+            cabin.roomNumber = null;
+            
+            console.log(`✅ Estado de cabaña ${cabinNumber} cambiado a 'available'`);
+            
+            updateCabinUI(cabinNumber);
+
+            // Guardar en Firebase
+            saveCabinToFirebase(cabinNumber, { 
+                status: 'available', 
+                startTime: null, 
+                roomNumber: null 
+            });
+
+            statusMessage.textContent = `Cabaña ${cabinNumber} desocupada.`;
+            
+            console.log(`🎯 Cabaña ${cabinNumber} desocupada exitosamente`);
+            
+            // Verificación adicional: asegurar que no haya temporizadores activos
+            setTimeout(() => {
+                if (cabin.timerId || cabin.countdownInterval) {
+                    console.warn(`⚠️ ADVERTENCIA: Cabaña ${cabinNumber} aún tiene temporizadores activos después de unassignCabin`);
+                    console.warn(`timerId:`, cabin.timerId);
+                    console.warn(`countdownInterval:`, cabin.countdownInterval);
+                    
+                    // Limpieza de emergencia
+                    if (cabin.timerId) {
+                        clearTimeout(cabin.timerId);
+                        cabin.timerId = null;
+                    }
+                    if (cabin.countdownInterval) {
+                        clearInterval(cabin.countdownInterval);
+                        cabin.countdownInterval = null;
+                    }
                 } else {
-                    statusMessage.classList.add('bg-blue-100', 'border-blue-400', 'text-blue-700');
+                    console.log(`✅ Verificación: Cabaña ${cabinNumber} sin temporizadores activos`);
                 }
-                
-                statusMessage.classList.add('border');
-                statusMessage.classList.remove('hidden');
-                
-                console.log(`📱 Estado: ${message}`);
-            }
+            }, 100);
         }
 
-        function hideStatus() {
-            const statusMessage = document.getElementById('statusMessage');
-            if (statusMessage) {
-                statusMessage.classList.add('hidden');
-            }
-        }
-
-        function showError(message) {
-            showStatus(message, 'error');
-            setTimeout(() => hideStatus(), 5000);
-        }
-
-        function showSuccess(message) {
-            showStatus(message, 'success');
-            setTimeout(() => hideStatus(), 3000);
-        }
-
-        // Función para preparar la pestaña de reportes
-        function prepareReportsTab() {
-            console.log('📋 Preparando pestaña de reportes...');
+        // Función para terminar el break y regresar a estado ocupado
+        function endBreak(cabinNumber) {
+            const cabin = cabanas[cabinNumber];
             
-            // Configurar fechas por defecto si no están configuradas
-            const reportDateFrom = document.getElementById('reportDateFrom');
-            const reportDateTo = document.getElementById('reportDateTo');
-            
-            if (reportDateFrom && reportDateTo) {
-                const today = new Date();
-                const lastWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-                
-                if (!reportDateFrom.value) {
-                    reportDateFrom.value = lastWeek.toISOString().split('T')[0];
-                }
-                if (!reportDateTo.value) {
-                    reportDateTo.value = today.toISOString().split('T')[0];
-                }
-                
-                console.log('📅 Fechas de reporte configuradas');
+            console.log(`🔄 Terminando break para cabaña ${cabinNumber}...`);
+
+            // IMPORTANTE: Limpiar TODOS los temporizadores ANTES de cambiar el estado
+            if (cabin.timerId) {
+                console.log(`⏰ Limpiando timerId para cabaña ${cabinNumber}`);
+                clearTimeout(cabin.timerId);
+                cabin.timerId = null;
             }
             
-            // Limpiar contenido previo del reporte
-            const reportContent = document.getElementById('reportContent');
-            if (reportContent) {
-                reportContent.innerHTML = `
-                    <div class="text-center text-gray-500 py-8">
-                        <i class="fas fa-chart-bar text-4xl mb-4"></i>
-                        <p class="text-lg">Selecciona un rango de fechas y tipo de reporte para generar la vista previa.</p>
-                    </div>
+            // Limpiar el intervalo del countdown si existe
+            if (cabin.countdownInterval) {
+                console.log(`⏰ Limpiando countdownInterval para cabaña ${cabinNumber}`);
+                clearInterval(cabin.countdownInterval);
+                cabin.countdownInterval = null;
+            }
+
+            // Limpiar el texto del timer en la UI
+            if (cabin.timerText) {
+                cabin.timerText.textContent = '';
+                cabin.timerText.classList.remove('visible');
+                console.log(`⏰ Timer text limpiado para cabaña ${cabinNumber}`);
+            }
+
+            // Cambiar estado después de limpiar temporizadores
+            cabin.status = 'occupied';
+            cabin.startTime = null;
+            
+            console.log(`✅ Estado de cabaña ${cabinNumber} cambiado a 'occupied'`);
+            
+            // Actualizar UI
+            updateCabinUI(cabinNumber);
+
+            // Calcular duración del break si hay startTime
+            let breakDuration = null;
+            if (cabin.startTime) {
+                const startTime = new Date(cabin.startTime);
+                const endTime = new Date();
+                breakDuration = Math.round((endTime - startTime) / (1000 * 60)); // en minutos
+                console.log(`⏰ Break completado: ${breakDuration} minutos`);
+            }
+
+            // Guardar en Firebase
+            saveCabinToFirebase(cabinNumber, { 
+                status: 'occupied', 
+                startTime: null 
+            });
+
+            // Crear log de break completado
+            if (breakDuration !== null) {
+                createBreakLog(cabinNumber, 'completed', cabin.startTime, new Date().toISOString(), breakDuration);
+            }
+
+            statusMessage.textContent = `Cabaña ${cabinNumber} (Habitación ${cabin.roomNumber}) ha regresado de su break.`;
+            
+            console.log(`🎯 Break terminado exitosamente para cabaña ${cabinNumber}`);
+            
+            // Verificación adicional: asegurar que no haya temporizadores activos
+            setTimeout(() => {
+                if (cabin.timerId || cabin.countdownInterval) {
+                    console.warn(`⚠️ ADVERTENCIA: Cabaña ${cabinNumber} aún tiene temporizadores activos después de endBreak`);
+                    console.warn(`timerId:`, cabin.timerId);
+                    console.warn(`countdownInterval:`, cabin.countdownInterval);
+                    
+                    // Limpieza de emergencia
+                    if (cabin.timerId) {
+                        clearTimeout(cabin.timerId);
+                        cabin.timerId = null;
+                    }
+                    if (cabin.countdownInterval) {
+                        clearInterval(cabin.countdownInterval);
+                        cabin.countdownInterval = null;
+                    }
+                } else {
+                    console.log(`✅ Verificación: Cabaña ${cabinNumber} sin temporizadores activos`);
+                }
+            }, 100);
+        }
+
+
+        // Event listener para el botón de Ocupar en el modal
+        assignBtn.addEventListener('click', () => {
+            const roomNumber = roomNumberInput.value.trim();
+            if (currentCabinNumber && roomNumber) {
+                const cabin = cabanas[currentCabinNumber];
+                cabin.status = 'occupied';
+                cabin.roomNumber = roomNumber;
+                updateCabinUI(currentCabinNumber);
+                
+                // Guardar en Firebase
+                saveCabinToFirebase(currentCabinNumber, { 
+                    status: 'occupied', 
+                    roomNumber: roomNumber 
+                });
+                
+                hideModal();
+                statusMessage.textContent = `Cabaña ${currentCabinNumber} asignada a la Habitación ${roomNumber}.`;
+            } else {
+                statusMessage.textContent = 'Por favor, ingrese un número de habitación.';
+            }
+        });
+
+        // Event listener para el botón de Marcar Salida en el modal
+        startTimerBtn.addEventListener('click', () => {
+            const cabin = cabanas[currentCabinNumber];
+            if (currentCabinNumber && cabin.roomNumber) {
+                startTimer(currentCabinNumber, cabin.roomNumber);
+                hideModal();
+            }
+        });
+        
+        // Event listener para el botón de Marcar Regreso en el modal
+        endBreakBtn.addEventListener('click', () => {
+            if (currentCabinNumber) {
+                endBreak(currentCabinNumber);
+                hideModal();
+            }
+        });
+
+        // Event listener para el nuevo botón de Retirar Pertenencias
+        removeItemsBtn.addEventListener('click', () => {
+            if (currentCabinNumber) {
+                const cabin = cabanas[currentCabinNumber];
+                const message = `🚨 ¡Alerta! 🚨\n\nLa cabaña #${currentCabinNumber} (habitación #${cabin.roomNumber}) ha excedido el tiempo de break.\n\n💼 Por favor, se retiraran las pertenencias y seran colocadas en el lounge del preferred club. ¡Gracias! 😊`;
+                const encodedMessage = encodeURIComponent(message);
+                const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+                
+                window.open(whatsappUrl, '_blank');
+                
+                // IMPORTANTE: Desocupar la cabaña inmediatamente después de retirar pertenencias
+                unassignCabin(currentCabinNumber);
+                hideModal();
+                
+                // Mostrar mensaje de confirmación
+                statusMessage.textContent = `✅ Cabaña ${currentCabinNumber} desocupada después de retirar pertenencias de la Habitación ${cabin.roomNumber}.`;
+            }
+        });
+
+        // Event listener para el botón de Desocupar en el modal
+        unassignBtn.addEventListener('click', () => {
+            if (currentCabinNumber) {
+                unassignCabin(currentCabinNumber);
+                hideModal();
+            }
+        });
+
+        // Event listener para cerrar el modal
+        closeModalBtn.addEventListener('click', hideModal);
+        
+        // Event listeners para el modal de alerta
+        document.getElementById('closeAlertModalBtn').addEventListener('click', () => {
+            document.getElementById('alertModal').classList.remove('visible');
+        });
+        
+        document.getElementById('alertModalOkBtn').addEventListener('click', () => {
+            document.getElementById('alertModal').classList.remove('visible');
+        });
+        
+        // Cerrar modal de alerta al hacer clic fuera
+        document.getElementById('alertModal').addEventListener('click', (event) => {
+            if (event.target.id === 'alertModal') {
+                event.target.classList.remove('visible');
+            }
+        });
+
+
+        
+        // Event listeners para notificaciones
+        enableNotificationsBtn.addEventListener('click', requestNotificationPermission);
+        dismissNotificationsBtn.addEventListener('click', () => {
+            notificationBanner.classList.add('hidden');
+            statusMessage.textContent = '🔕 Notificaciones descartadas. Puedes activarlas más tarde desde la configuración.';
+        });
+        reopenNotificationsBtn.addEventListener('click', openNotificationSettings);
+
+        // Inicializa el sistema al cargar la página
+        initializeFirebase();
+        checkNotificationPermission();
+        
+        // Verificar estado de la página para notificaciones
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                console.log('📱 Página oculta - Las notificaciones push son más importantes');
+            } else {
+                console.log('📱 Página visible - Notificaciones push + visuales');
+            }
+        });
+        
+        // Verificar si la página tiene foco
+        window.addEventListener('focus', () => {
+            console.log('🎯 Ventana con foco - Notificaciones push activas');
+        });
+        
+        window.addEventListener('blur', () => {
+            console.log('👁️ Ventana sin foco - Notificaciones push críticas');
+        });
+        
+        // Función para verificar estado real de notificaciones
+        function verifyNotificationState() {
+            if (!('Notification' in window)) {
+                console.log('❌ Notificaciones no soportadas');
+                return;
+            }
+            
+            const nativePermission = Notification.permission;
+            const canShowNotifications = notificationPermission === 'granted' || nativePermission === 'granted';
+            
+            console.log(`📱 Estado de notificaciones:`, {
+                native: nativePermission,
+                local: notificationPermission,
+                canShow: canShowNotifications
+            });
+            
+            // Si los permisos nativos están concedidos, sincronizar
+            if (nativePermission === 'granted' && notificationPermission !== 'granted') {
+                notificationPermission = 'granted';
+                updateNotificationUI();
+                console.log('✅ Estado local sincronizado con permisos nativos');
+            }
+        }
+        
+        // Verificar estado después de 3 segundos
+        setTimeout(verifyNotificationState, 3000);
+        
+        // Función para sincronizar permisos de notificaciones
+        function syncNotificationPermissions() {
+            if ('Notification' in window) {
+                const currentPermission = Notification.permission;
+                
+                // Si el estado nativo es 'granted', actualizar el local
+                if (currentPermission === 'granted') {
+                    if (notificationPermission !== 'granted') {
+                        console.log(`✅ Permisos nativos concedidos, actualizando estado local`);
+                        notificationPermission = 'granted';
+                        updateNotificationUI();
+                    }
+                }
+                // Si el estado local es 'granted' pero el nativo no, mantener el local
+                else if (notificationPermission === 'granted') {
+                    console.log(`✅ Manteniendo permisos locales concedidos`);
+                }
+                // Para otros casos, sincronizar normalmente
+                else if (currentPermission !== notificationPermission) {
+                    console.log(`🔄 Sincronizando permisos: ${notificationPermission} → ${currentPermission}`);
+                    notificationPermission = currentPermission;
+                    updateNotificationUI();
+                }
+            }
+        }
+        
+        // Sincronizar permisos cada 30 segundos (menos frecuente para evitar conflictos)
+        setInterval(syncNotificationPermissions, 30000);
+        
+        // Limpiar historial de notificaciones cada 2 minutos para evitar acumulación
+        const notificationCleanupInterval = setInterval(() => {
+            if (window.lastNotificationShown) {
+                const now = Date.now();
+                const cutoff = now - 120000; // 2 minutos
+                
+                Object.keys(window.lastNotificationShown).forEach(key => {
+                    if (window.lastNotificationShown[key] < cutoff) {
+                        delete window.lastNotificationShown[key];
+                    }
+                });
+                
+                console.log(`🧹 Historial de notificaciones limpiado`);
+            }
+        }, 120000);
+        
+        // Limpiar intervalos al cerrar la página
+        window.addEventListener('beforeunload', () => {
+            clearInterval(notificationCleanupInterval);
+            clearInterval(syncNotificationPermissions);
+        });
+        
+                // Diagnóstico automático de notificaciones después de 2 segundos
+        setTimeout(() => {
+            console.log(`🔍 === DIAGNÓSTICO AUTOMÁTICO DE NOTIFICACIONES ===`);
+            console.log(`📱 Estado del navegador:`, {
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                cookieEnabled: navigator.cookieEnabled,
+                onLine: navigator.onLine
+            });
+            
+            console.log(`🔔 Estado de notificaciones:`, {
+                notificationAvailable: 'Notification' in window,
+                permission: 'Notification' in window ? Notification.permission : 'N/A',
+                maxActions: 'Notification' in window ? Notification.maxActions : 'N/A',
+                permissionDefault: 'Notification' in window ? Notification.permissionDefault : 'N/A',
+                localPermission: notificationPermission
+            });
+            
+            // Sincronizar estado si es necesario
+            if ('Notification' in window && notificationPermission !== Notification.permission) {
+                console.log(`🔄 Sincronizando estado de permisos...`);
+                notificationPermission = Notification.permission;
+                updateNotificationUI();
+            }
+            
+            if ('Notification' in window) {
+                console.log(`✅ Notificaciones soportadas`);
+                if (Notification.permission === 'granted') {
+                    console.log(`✅ Permisos concedidos - Las notificaciones deberían funcionar`);
+                    // Asegurar que la variable local esté sincronizada
+                    if (notificationPermission !== 'granted') {
+                        notificationPermission = 'granted';
+                        console.log(`🔄 Variable local sincronizada a 'granted'`);
+                    }
+                } else if (Notification.permission === 'denied') {
+                    console.log(`❌ Permisos denegados - El usuario bloqueó las notificaciones`);
+                } else {
+                    console.log(`⏳ Permisos no solicitados - Se solicitarán automáticamente`);
+                }
+            } else {
+                console.log(`❌ Notificaciones NO soportadas en este navegador`);
+            }
+        }, 2000);
+        
+        // Mostrar mensaje de estado inicial
+        statusMessage.textContent = '🔄 Conectando con Firebase... (máximo 10 segundos)';
+        
+        // Verificación de configuración de Firebase
+        console.log('🔍 Verificando configuración de Firebase...');
+        console.log('📋 Configuración:', {
+            apiKey: firebaseConfig.apiKey ? '✅ Configurado' : '❌ Faltante',
+            authDomain: firebaseConfig.authDomain ? '✅ Configurado' : '❌ Faltante',
+            databaseURL: firebaseConfig.databaseURL ? '✅ Configurado' : '❌ Faltante',
+            projectId: firebaseConfig.projectId ? '✅ Configurado' : '❌ Faltante'
+        });
+        
+        // Verificación de reglas de Firebase
+        console.log('⚠️ IMPORTANTE: Verifica que hayas aplicado las reglas de Firebase en tu consola');
+        console.log('📋 Reglas necesarias:');
+        console.log('1. Ve a console.firebase.google.com');
+        console.log('2. Selecciona tu proyecto: secrets-e9d81');
+        console.log('3. Ve a Realtime Database > Rules');
+        console.log('4. Aplica las reglas que te proporcioné anteriormente');
+
+        // Timeout de seguridad unificado para evitar carga infinita
+        setTimeout(() => {
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            const cabanasGrid = document.getElementById('cabanasGrid');
+            
+            if (loadingIndicator && cabanasGrid.classList.contains('hidden')) {
+                console.warn('⚠️ Timeout de seguridad: Forzando mostrar grid');
+                showCabanasGrid();
+                statusMessage.textContent = '⚠️ Sistema mostrado por timeout de seguridad. Verificando conexión...';
+                updateConnectionStatus('error', 'Sistema en modo de seguridad');
+            }
+        }, 8000); // 8 segundos máximo
+
+        // Event listener para botón de reintentar
+        document.getElementById('retryButton').addEventListener('click', () => {
+            console.log('🔄 Reintentando conexión con Firebase...');
+            hideRetryButton();
+            statusMessage.textContent = '🔄 Reintentando conexión...';
+            updateConnectionStatus('connecting', 'Reintentando conexión...');
+            
+            // Reinicializar Firebase
+            setTimeout(() => {
+                initializeFirebase();
+            }, 1000);
+        });
+
+        // Event listener para botón de cargar sistema local
+        document.getElementById('loadLocalButton').addEventListener('click', () => {
+            console.log('🏠 Cargando sistema local...');
+            statusMessage.textContent = '🏠 Sistema local activado sin Firebase...';
+            updateConnectionStatus('error', 'Modo local activado');
+            
+            // Solo mostrar grid, no reinicializar si ya hay datos
+            if (cabanasGrid.children.length === 0) {
+                // Solo inicializar si el grid está vacío
+                initializeCabanas();
+            }
+            showCabanasGrid();
+            isFirebaseReady = false;
+        });
+
+        // Verificación automática de Firebase después de 3 segundos
+        setTimeout(() => {
+            if (!isFirebaseReady) {
+                console.warn('⚠️ Firebase no se inicializó en 3 segundos, verificando estado...');
+                const loadingIndicator = document.getElementById('loadingIndicator');
+                const cabanasGrid = document.getElementById('cabanasGrid');
+                
+                if (loadingIndicator && cabanasGrid.classList.contains('hidden')) {
+                    console.log('🔄 Forzando mostrar grid...');
+                    showCabanasGrid();
+                    statusMessage.textContent = '⚠️ Sistema mostrado por verificación automática. Verificando Firebase...';
+                }
+            }
+        }, 3000);
+
+
+
+
+
+                // Función para forzar la activación de notificaciones
+        function forceEnableNotifications() {
+            console.log(`🚀 === FORZANDO ACTIVACIÓN DE NOTIFICACIONES ===`);
+            
+            if (!('Notification' in window)) {
+                alert('Tu navegador no soporta notificaciones. Actualiza a una versión más reciente.');
+                return;
+            }
+
+            if (Notification.permission === 'denied') {
+                console.log(`❌ Permisos denegados, mostrando instrucciones...`);
+                const instructions = `
+🔧 Para activar las notificaciones:
+
+1. Haz clic en el ícono de candado 🔒 en la barra de direcciones
+2. Selecciona "Permitir" en la opción de notificaciones
+3. Recarga la página
+
+O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
                 `;
+                alert(instructions);
+                return;
+            }
+            
+            if (Notification.permission === 'default') {
+                console.log(`⏳ Solicitando permisos...`);
+                requestNotificationPermission();
+            } else if (Notification.permission === 'granted') {
+                console.log(`✅ Permisos ya concedidos`);
+                // Sincronizar estado antes de mostrar notificación
+                notificationPermission = 'granted';
+                showNotification('✅ Notificaciones Activas', 'Las notificaciones ya están funcionando correctamente!');
             }
         }
 
 
+        
+        // Función de prueba alternativa más simple
+        function testNotificationSimple() {
+            console.log(`🧪 === PRUEBA SIMPLE DE NOTIFICACIÓN ===`);
+            
+            if (!('Notification' in window)) {
+                alert('Tu navegador no soporta notificaciones');
+                return;
+            }
+            
+            if (Notification.permission === 'granted') {
+                try {
+                    const notification = new Notification('🧪 Prueba Simple', {
+                        body: '¡Esta es una notificación de prueba!',
+                        icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjNEZBRjUwIi8+Cjx0ZXh0IHg9IjE2IiB5PSIyMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iMTYiPvCfkqE8L3RleHQ+Cjwvc3ZnPgo='
+                    });
+                    
+                    console.log('✅ Notificación de prueba creada exitosamente');
+                    
+                    // Cerrar después de 5 segundos
+                    setTimeout(() => {
+                        notification.close();
+                        console.log('🔒 Notificación de prueba cerrada');
+                    }, 5000);
+                    
+                } catch (error) {
+                    console.error('❌ Error al crear notificación de prueba:', error);
+                    alert(`Error: ${error.message}`);
+                }
+            } else if (Notification.permission === 'denied') {
+                alert('Las notificaciones están denegadas. Ve a la configuración del navegador.');
+            } else {
+                alert('Solicitando permisos de notificación...');
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        testNotificationSimple();
+                    } else {
+                        alert('Permisos denegados');
+                    }
+                });
+            }
+        }
 
-        // Inicializar dashboard cuando se carga la página
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('🚀 DOM cargado, inicializando dashboard...');
+        // Hacer las funciones disponibles globalmente
+        window.testNotificationSimple = testNotificationSimple;
+        window.forceEnableNotifications = forceEnableNotifications;
+        window.showNotification = showNotification;
+        window.requestNotificationPermission = requestNotificationPermission;
+
+
+
+        // Agregar animaciones al cargar la página
+        window.addEventListener('load', () => {
+            // Add pulse animation to title
+            const title = document.querySelector('.system-title');
+            if (title) {
+                title.classList.add('pulse');
+            }
             
-            // Configurar fechas por defecto
-            const today = new Date();
-            const lastWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-            
-            const logDateFrom = document.getElementById('logDateFrom');
-            const logDateTo = document.getElementById('logDateTo');
-            const reportDateFrom = document.getElementById('reportDateFrom');
-            const reportDateTo = document.getElementById('reportDateTo');
-            
-            if (logDateFrom) logDateFrom.value = lastWeek.toISOString().split('T')[0];
-            if (logDateTo) logDateTo.value = today.toISOString().split('T')[0];
-            if (reportDateFrom) reportDateFrom.value = lastWeek.toISOString().split('T')[0];
-            if (reportDateTo) reportDateTo.value = today.toISOString().split('T')[0];
-            
-            console.log('📅 Fechas configuradas');
-            
-            // Inicializar dashboard
-            initializeDashboard();
+            // Add fade-in animation to status message
+            const statusMsg = document.getElementById('statusMessage');
+            if (statusMsg) {
+                statusMsg.classList.add('fade-in');
+            }
         });
     </script>
+
 </body>
 </html>
