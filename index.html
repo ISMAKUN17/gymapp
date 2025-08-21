@@ -1005,6 +1005,12 @@
             <button id="loadDataButton" class="load-data-button" onclick="forceLoadData()">
                 <i class="fas fa-download mr-2"></i>Cargar Datos
             </button>
+            <button id="testNotificationsButton" class="debug-button" onclick="testNotifications()">
+                <i class="fas fa-bell mr-2"></i>Probar Notificaciones
+            </button>
+            <button id="forceNotificationsButton" class="debug-button" onclick="forceEnableNotifications()">
+                <i class="fas fa-bell-slash mr-2"></i>Forzar Activación
+            </button>
         </div>
         
         <!-- Indicador de Estados -->
@@ -1194,12 +1200,24 @@
 
         // Función para verificar el estado de las notificaciones
         function checkNotificationPermission() {
+            console.log(`🔍 Verificando permisos de notificaciones...`);
+            
             if (!('Notification' in window)) {
-                console.log('Este navegador no soporta notificaciones');
+                console.log('❌ Este navegador no soporta notificaciones');
                 return false;
             }
             
             notificationPermission = Notification.permission;
+            console.log(`📱 Permiso de notificaciones actual: ${notificationPermission}`);
+            
+            // Si no se han solicitado permisos, solicitarlos automáticamente
+            if (notificationPermission === 'default') {
+                console.log(`⏳ Permisos no solicitados, solicitando automáticamente...`);
+                setTimeout(() => {
+                    requestNotificationPermission();
+                }, 1000);
+            }
+            
             updateNotificationUI();
             return true;
         }
@@ -1224,28 +1242,35 @@
             }
         }
 
-        // Función para solicitar permisos de notificación
+                // Función para solicitar permisos de notificación
         async function requestNotificationPermission() {
+            console.log(`🔔 Solicitando permisos de notificación...`);
+            
             if (!('Notification' in window)) {
+                console.error('❌ Tu navegador no soporta notificaciones');
                 alert('Tu navegador no soporta notificaciones. Actualiza a una versión más reciente.');
                 return false;
             }
 
             try {
+                console.log(`📱 Solicitando permiso...`);
                 const permission = await Notification.requestPermission();
+                console.log(`📱 Permiso recibido: ${permission}`);
+                
                 notificationPermission = permission;
                 updateNotificationUI();
                 
                 if (permission === 'granted') {
+                    console.log(`✅ Permiso concedido! Mostrando notificación de prueba...`);
                     // Mostrar notificación de prueba
                     showNotification('🎉 ¡Notificaciones Activadas!', 'Ahora recibirás alertas automáticas del sistema de cabañas.');
                     return true;
                 } else {
-                    console.log('Permiso de notificaciones denegado');
+                    console.log(`❌ Permiso de notificaciones denegado: ${permission}`);
                     return false;
                 }
             } catch (error) {
-                console.error('Error al solicitar permisos:', error);
+                console.error('❌ Error al solicitar permisos:', error);
                 return false;
             }
         }
@@ -1324,8 +1349,16 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
         
         // Muestra una notificación del navegador
         function showNotification(title, body) {
+            console.log(`🔔 Intentando mostrar notificación: "${title}" - "${body}"`);
+            console.log(`📱 Estado de notificaciones:`, {
+                notificationAvailable: 'Notification' in window,
+                permission: 'Notification' in window ? Notification.permission : 'N/A',
+                granted: 'Notification' in window ? Notification.permission === 'granted' : false
+            });
+            
             if ('Notification' in window && Notification.permission === 'granted') {
                 try {
+                    console.log(`✅ Creando notificación...`);
                     const notification = new Notification(title, { 
                         body,
                         icon: 'https://assets.hyatt.com/content/dam/hyatt/hyattdam/images/2022/03/01/1532/Secrets-L001c-stk-R-color-RGB.png/Secrets-L001c-stk-R-color-RGB.400x196-PSR.png',
@@ -1335,21 +1368,25 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
                         silent: false
                     });
                     
+                    console.log(`✅ Notificación creada exitosamente:`, notification);
+                    
                     // Auto-cerrar notificación después de 5 segundos
                     setTimeout(() => {
                         notification.close();
+                        console.log(`🔒 Notificación cerrada automáticamente`);
                     }, 5000);
                     
                     return notification;
                 } catch (error) {
-                    console.error('Error al mostrar notificación:', error);
+                    console.error('❌ Error al mostrar notificación:', error);
                     // Fallback: mostrar alerta
                     alert(`${title}\n${body}`);
                 }
             } else {
-                console.log('Notificaciones no disponibles o no permitidas');
+                console.log('❌ Notificaciones no disponibles o no permitidas');
                 // Fallback: mostrar en el mensaje de estado
                 statusMessage.textContent = `🔔 ${title}: ${body}`;
+                console.log(`📝 Mostrando en mensaje de estado como fallback`);
             }
         }
 
@@ -1592,6 +1629,11 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
                             const previousStatus = cabanas[cabinNumber].status;
                             const previousRoom = cabanas[cabinNumber].roomNumber;
                             
+                            // IMPORTANTE: Preservar los elementos del DOM
+                            const preservedElement = cabanas[cabinNumber].element;
+                            const preservedTimerText = cabanas[cabinNumber].timerText;
+                            const preservedRoomNumberElement = cabanas[cabinNumber].roomNumberElement;
+                            
                             // Actualizar estado de la cabaña
                             cabanas[cabinNumber].status = cabinData.status || 'available';
                             cabanas[cabinNumber].roomNumber = cabinData.roomNumber || null;
@@ -1599,11 +1641,21 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
                             cabanas[cabinNumber].lastUpdated = cabinData.lastUpdated || null;
                             cabanas[cabinNumber].updatedBy = cabinData.updatedBy || null;
                             
+                            // RESTAURAR los elementos del DOM
+                            cabanas[cabinNumber].element = preservedElement;
+                            cabanas[cabinNumber].timerText = preservedTimerText;
+                            cabanas[cabinNumber].roomNumberElement = preservedRoomNumberElement;
+                            
                             console.log(`✅ Cabaña ${cabinNumber} actualizada:`, {
                                 previous: { status: previousStatus, room: previousRoom },
                                 current: { 
                                     status: cabanas[cabinNumber].status, 
                                     room: cabanas[cabinNumber].roomNumber 
+                                },
+                                domElements: {
+                                    element: !!preservedElement,
+                                    timerText: !!preservedTimerText,
+                                    roomNumberElement: !!preservedRoomNumberElement
                                 }
                             });
                             
@@ -1737,6 +1789,18 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
         // Función para restaurar temporizador desde Firebase
         function restoreTimer(cabinNumber, roomNumber, startTime) {
             const cabin = cabanas[cabinNumber];
+            
+            // Verificar que la cabaña y sus elementos existan
+            if (!cabin) {
+                console.error(`❌ Cabaña ${cabinNumber} no encontrada en restoreTimer`);
+                return;
+            }
+            
+            if (!cabin.timerText) {
+                console.error(`❌ Timer text no encontrado para cabaña ${cabinNumber} en restoreTimer`);
+                return;
+            }
+            
             const elapsed = new Date().getTime() - new Date(startTime).getTime();
             const remaining = TIMER_DURATION_MS - elapsed;
             
@@ -1749,10 +1813,15 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
                 
                 // Configurar temporizador
                 cabin.timerId = setTimeout(() => {
+                    console.log(`⏰ ⏰ ⏰ TIMER RESTAURADO EXPIRADO para cabaña ${cabinNumber} ⏰ ⏰ ⏰`);
                     cabin.status = 'expired';
                     updateCabinUI(cabinNumber);
                     saveCabinToFirebase(cabinNumber, { status: 'expired' });
+                    
+                    // Mostrar notificación de expiración
+                    console.log(`🔔 Mostrando notificación de expiración (restaurada)...`);
                     showNotification(`¡Tiempo Expirado! Cabaña ${cabinNumber}`, `La cabaña de la Habitación ${roomNumber} ha excedido el tiempo de break.`);
+                    
                     statusMessage.textContent = `¡El tiempo para la Cabaña ${cabinNumber} (Habitación ${roomNumber}) ha expirado!`;
                 }, remaining);
                 
@@ -1763,11 +1832,16 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
                         cabin.countdownInterval = null;
                         return;
                     }
-                    const currentElapsed = new Date().getTime() - cabin.startTime;
-                    const currentRemaining = TIMER_DURATION_MS - currentElapsed;
-                    const minutes = Math.floor(currentRemaining / 60000);
-                    const seconds = Math.floor((currentRemaining % 60000) / 1000);
-                    cabin.timerText.textContent = `${minutes}m ${seconds}s`;
+                    
+                    if (cabin.timerText && cabin.startTime) {
+                        const currentElapsed = new Date().getTime() - cabin.startTime;
+                        const currentRemaining = TIMER_DURATION_MS - currentElapsed;
+                        const minutes = Math.floor(currentRemaining / 60000);
+                        const seconds = Math.floor((currentRemaining % 60000) / 1000);
+                        cabin.timerText.textContent = `${minutes}m ${seconds}s`;
+                    } else {
+                        console.error(`❌ Timer text o startTime no encontrado para cabaña ${cabinNumber} en restoreTimer countdown`);
+                    }
                 }, 1000);
                 
             } else {
@@ -1885,6 +1959,17 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
         function startTimer(cabinNumber, roomNumber) {
             const cabin = cabanas[cabinNumber];
             
+            // Verificar que la cabaña y sus elementos existan
+            if (!cabin) {
+                console.error(`❌ Cabaña ${cabinNumber} no encontrada`);
+                return;
+            }
+            
+            if (!cabin.timerText) {
+                console.error(`❌ Timer text no encontrado para cabaña ${cabinNumber}`);
+                return;
+            }
+            
             // Si ya hay un temporizador, lo reiniciamos primero
             if (cabin.timerId) {
                 clearTimeout(cabin.timerId);
@@ -1920,10 +2005,15 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
             });
 
             cabin.timerId = setTimeout(() => {
+                console.log(`⏰ ⏰ ⏰ TIMER EXPIRADO para cabaña ${cabinNumber} ⏰ ⏰ ⏰`);
                 cabin.status = 'expired';
                 updateCabinUI(cabinNumber);
                 saveCabinToFirebase(cabinNumber, { status: 'expired' });
+                
+                // Mostrar notificación de expiración
+                console.log(`🔔 Mostrando notificación de expiración...`);
                 showNotification(`¡Tiempo Expirado! Cabaña ${cabinNumber}`, `La cabaña de la Habitación ${roomNumber} ha excedido el tiempo de break.`);
+                
                 statusMessage.textContent = `¡El tiempo para la Cabaña ${cabinNumber} (Habitación ${roomNumber}) ha expirado!`;
                 
                 // Limpiar el intervalo del countdown cuando expire
@@ -2096,6 +2186,37 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
         // Inicializa el sistema al cargar la página
         initializeFirebase();
         checkNotificationPermission();
+        
+        // Diagnóstico automático de notificaciones después de 2 segundos
+        setTimeout(() => {
+            console.log(`🔍 === DIAGNÓSTICO AUTOMÁTICO DE NOTIFICACIONES ===`);
+            console.log(`📱 Estado del navegador:`, {
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                cookieEnabled: navigator.cookieEnabled,
+                onLine: navigator.onLine
+            });
+            
+            console.log(`🔔 Estado de notificaciones:`, {
+                notificationAvailable: 'Notification' in window,
+                permission: 'Notification' in window ? Notification.permission : 'N/A',
+                maxActions: 'Notification' in window ? Notification.maxActions : 'N/A',
+                permissionDefault: 'Notification' in window ? Notification.permissionDefault : 'N/A'
+            });
+            
+            if ('Notification' in window) {
+                console.log(`✅ Notificaciones soportadas`);
+                if (Notification.permission === 'granted') {
+                    console.log(`✅ Permisos concedidos - Las notificaciones deberían funcionar`);
+                } else if (Notification.permission === 'denied') {
+                    console.log(`❌ Permisos denegados - El usuario bloqueó las notificaciones`);
+                } else {
+                    console.log(`⏳ Permisos no solicitados - Se solicitarán automáticamente`);
+                }
+            } else {
+                console.log(`❌ Notificaciones NO soportadas en este navegador`);
+            }
+        }, 2000);
         
         // Mostrar mensaje de estado inicial
         statusMessage.textContent = '🔄 Conectando con Firebase... (máximo 10 segundos)';
@@ -2285,6 +2406,85 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
             }
         }
 
+        // Función para forzar la activación de notificaciones
+        function forceEnableNotifications() {
+            console.log(`🚀 === FORZANDO ACTIVACIÓN DE NOTIFICACIONES ===`);
+            
+            if (!('Notification' in window)) {
+                alert('Tu navegador no soporta notificaciones. Actualiza a una versión más reciente.');
+                return;
+            }
+            
+            if (Notification.permission === 'denied') {
+                console.log(`❌ Permisos denegados, mostrando instrucciones...`);
+                const instructions = `
+🔧 Para activar las notificaciones:
+
+1. Haz clic en el ícono de candado 🔒 en la barra de direcciones
+2. Selecciona "Permitir" en la opción de notificaciones
+3. Recarga la página
+
+O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
+                `;
+                alert(instructions);
+                return;
+            }
+            
+            if (Notification.permission === 'default') {
+                console.log(`⏳ Solicitando permisos...`);
+                requestNotificationPermission();
+            } else if (Notification.permission === 'granted') {
+                console.log(`✅ Permisos ya concedidos`);
+                showNotification('✅ Notificaciones Activas', 'Las notificaciones ya están funcionando correctamente!');
+            }
+        }
+
+        // Función para probar notificaciones
+        function testNotifications() {
+            console.log(`🧪 === PRUEBA DE NOTIFICACIONES ===`);
+            console.log(`📱 Estado actual:`, {
+                notificationAvailable: 'Notification' in window,
+                permission: 'Notification' in window ? Notification.permission : 'N/A',
+                notificationPermission: notificationPermission
+            });
+            
+            if ('Notification' in window) {
+                if (Notification.permission === 'granted') {
+                    console.log(`✅ Permisos concedidos, probando notificación...`);
+                    
+                    // Probar notificación simple primero
+                    try {
+                        const testNotif = new Notification('🧪 Prueba Simple', {
+                            body: 'Esta es una notificación de prueba directa',
+                            icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><rect width="32" height="32" fill="%234CAF50"/><text x="16" y="20" text-anchor="middle" fill="white" font-size="16">🔔</text></svg>'
+                        });
+                        console.log(`✅ Notificación directa creada:`, testNotif);
+                        
+                        // Cerrar después de 3 segundos
+                        setTimeout(() => {
+                            testNotif.close();
+                            console.log(`🔒 Notificación de prueba cerrada`);
+                        }, 3000);
+                        
+                    } catch (directError) {
+                        console.error(`❌ Error con notificación directa:`, directError);
+                    }
+                    
+                    // También probar con nuestra función
+                    showNotification('🧪 Prueba de Notificación', 'Si ves esto, las notificaciones funcionan correctamente!');
+                    
+                } else if (Notification.permission === 'denied') {
+                    console.log(`❌ Permisos denegados`);
+                    alert('Las notificaciones están denegadas. Ve a la configuración del navegador para habilitarlas.');
+                } else {
+                    console.log(`⏳ Permisos no solicitados, solicitando...`);
+                    requestNotificationPermission();
+                }
+            } else {
+                console.log(`❌ Notificaciones no soportadas en este navegador`);
+            }
+        }
+
         // Función para verificar conexión con Firebase
         async function verifyFirebaseConnection() {
             console.log('🔍 === VERIFICACIÓN DE FIREBASE ===');
@@ -2360,4 +2560,3 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
 
 </body>
 </html>
-chhace lo mismo en lor iniciar da en NaN y debo acr la   contaa,te4aendo las notifivadas no notificada nada osea nondosiguen sin funcionar las notificaciones
