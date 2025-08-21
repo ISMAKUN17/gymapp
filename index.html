@@ -866,64 +866,7 @@
             box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
         }
 
-        .debug-actions {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            margin: 15px 0;
-            flex-wrap: wrap;
-        }
 
-        .debug-button {
-            background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-        }
-
-        .debug-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(139, 92, 246, 0.3);
-        }
-
-        .verify-firebase-button {
-            background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-        }
-
-        .verify-firebase-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(6, 182, 212, 0.3);
-        }
-
-        .load-data-button {
-            background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            font-size: 0.9rem;
-        }
-
-        .load-data-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(245, 158, 11, 0.3);
-        }
 
         /* Responsive para notificaciones */
         @media (max-width: 768px) {
@@ -994,24 +937,7 @@
         <!-- Mensaje de estado -->
         <p id="statusMessage" class="status-message"></p>
         
-        <!-- Botones de Debug y Verificación -->
-        <div class="debug-actions">
-            <button id="debugButton" class="debug-button" onclick="debugCabanas()">
-                <i class="fas fa-bug mr-2"></i>Debug Estado
-            </button>
-            <button id="verifyFirebaseButton" class="verify-firebase-button" onclick="verifyFirebaseConnection()">
-                <i class="fas fa-wifi mr-2"></i>Verificar Firebase
-            </button>
-            <button id="loadDataButton" class="load-data-button" onclick="forceLoadData()">
-                <i class="fas fa-download mr-2"></i>Cargar Datos
-            </button>
-            <button id="testNotificationsButton" class="debug-button" onclick="testNotifications()">
-                <i class="fas fa-bell mr-2"></i>Probar Notificaciones
-            </button>
-            <button id="forceNotificationsButton" class="debug-button" onclick="forceEnableNotifications()">
-                <i class="fas fa-bell-slash mr-2"></i>Forzar Activación
-            </button>
-        </div>
+
         
         <!-- Indicador de Estados -->
         <div class="status-indicator">
@@ -1207,8 +1133,19 @@
                 return false;
             }
             
-            notificationPermission = Notification.permission;
-            console.log(`📱 Permiso de notificaciones actual: ${notificationPermission}`);
+            // Solo sincronizar si el estado nativo es 'granted'
+            if (Notification.permission === 'granted') {
+                notificationPermission = 'granted';
+                console.log(`✅ Permisos ya concedidos, estado sincronizado`);
+            } else {
+                notificationPermission = Notification.permission;
+                console.log(`📱 Permiso de notificaciones actual: ${notificationPermission}`);
+            }
+            
+            console.log(`🔄 Estado final:`, {
+                local: notificationPermission,
+                native: Notification.permission
+            });
             
             // Si no se han solicitado permisos, solicitarlos automáticamente
             if (notificationPermission === 'default') {
@@ -1261,12 +1198,21 @@
                 updateNotificationUI();
                 
                 if (permission === 'granted') {
-                    console.log(`✅ Permiso concedido! Mostrando notificación de prueba...`);
-                    // Mostrar notificación de prueba
-                    showNotification('🎉 ¡Notificaciones Activadas!', 'Ahora recibirás alertas automáticas del sistema de cabañas.');
-                    return true;
+                    console.log(`✅ Permiso concedido! Actualizando estado...`);
+                    
+                    // Actualizar UI inmediatamente
+                    updateNotificationUI();
+                    
+                    // Mostrar notificación de prueba después de un breve retraso
+                    setTimeout(() => {
+                        console.log(`🔔 Mostrando notificación de prueba...`);
+                        showNotification('🎉 ¡Notificaciones Activadas!', 'Ahora recibirás alertas automáticas del sistema de cabañas.');
+                    }, 500);
+                    
+                    return true
                 } else {
                     console.log(`❌ Permiso de notificaciones denegado: ${permission}`);
+                    updateNotificationUI();
                     return false;
                 }
             } catch (error) {
@@ -1280,22 +1226,25 @@
             const loadingIndicator = document.getElementById('loadingIndicator');
             const cabanasGrid = document.getElementById('cabanasGrid');
             
-            if (loadingIndicator && cabanasGrid) {
-                loadingIndicator.classList.add('hidden');
-                cabanasGrid.classList.remove('hidden');
-                
-                // Debug: verificar estado de las cabañas
-                console.log('🔍 Estado final de las cabañas:');
-                for (let i = 1; i <= NUM_CABANAS; i++) {
-                    if (cabanas[i]) {
-                        console.log(`Cabaña ${i}:`, {
-                            status: cabanas[i].status,
-                            roomNumber: cabanas[i].roomNumber,
-                            startTime: cabanas[i].startTime,
-                            hasElement: !!cabanas[i].element,
-                            elementClasses: cabanas[i].element ? cabanas[i].element.className : 'N/A'
-                        });
-                    }
+            if (!loadingIndicator || !cabanasGrid) {
+                console.error('❌ Elementos del DOM no encontrados para showCabanasGrid');
+                return;
+            }
+            
+            loadingIndicator.classList.add('hidden');
+            cabanasGrid.classList.remove('hidden');
+            
+            // Verificar estado de las cabañas
+            console.log('🔍 Estado final de las cabañas:');
+            for (let i = 1; i <= NUM_CABANAS; i++) {
+                if (cabanas[i]) {
+                    console.log(`Cabaña ${i}:`, {
+                        status: cabanas[i].status,
+                        roomNumber: cabanas[i].roomNumber,
+                        startTime: cabanas[i].startTime,
+                        hasElement: !!cabanas[i].element,
+                        elementClasses: cabanas[i].element ? cabanas[i].element.className : 'N/A'
+                    });
                 }
             }
         }
@@ -1349,44 +1298,82 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
         
         // Muestra una notificación del navegador
         function showNotification(title, body) {
-            console.log(`🔔 Intentando mostrar notificación: "${title}" - "${body}"`);
+            console.log(`🔔 === INTENTANDO MOSTRAR NOTIFICACIÓN ===`);
             console.log(`📱 Estado de notificaciones:`, {
                 notificationAvailable: 'Notification' in window,
                 permission: 'Notification' in window ? Notification.permission : 'N/A',
-                granted: 'Notification' in window ? Notification.permission === 'granted' : false
+                granted: 'Notification' in window ? Notification.permission === 'granted' : false,
+                localPermission: notificationPermission
             });
             
-            if ('Notification' in window && Notification.permission === 'granted') {
-                try {
-                    console.log(`✅ Creando notificación...`);
-                    const notification = new Notification(title, { 
-                        body,
-                        icon: 'https://assets.hyatt.com/content/dam/hyatt/hyattdam/images/2022/03/01/1532/Secrets-L001c-stk-R-color-RGB.png/Secrets-L001c-stk-R-color-RGB.400x196-PSR.png',
-                        badge: 'https://assets.hyatt.com/content/dam/hyatt/hyattdam/images/2022/03/01/1532/Secrets-L001c-stk-R-color-RGB.png/Secrets-L001c-stk-R-color-RGB.400x196-PSR.png',
-                        tag: 'cabin-system',
-                        requireInteraction: false,
-                        silent: false
-                    });
-                    
-                    console.log(`✅ Notificación creada exitosamente:`, notification);
-                    
-                    // Auto-cerrar notificación después de 5 segundos
-                    setTimeout(() => {
+            // Verificar que no se haya mostrado la misma notificación recientemente
+            const notificationKey = `${title}-${body}`;
+            const now = Date.now();
+            const lastShown = window.lastNotificationShown || {};
+            
+            if (lastShown[notificationKey] && (now - lastShown[notificationKey]) < 5000) {
+                console.log(`⚠️ Notificación mostrada recientemente, evitando duplicado`);
+                return;
+            }
+            
+            // Verificación de permisos simplificada
+            if (!('Notification' in window)) {
+                console.error('❌ Notificaciones no soportadas en este navegador');
+                return null;
+            }
+            
+            // Verificar permisos de manera más inteligente
+            const hasPermission = notificationPermission === 'granted' || Notification.permission === 'granted';
+            
+            if (!hasPermission) {
+                console.log('📱 Estado de permisos:', {
+                    native: Notification.permission,
+                    local: notificationPermission
+                });
+                return null;
+            }
+            
+            console.log('✅ Permisos verificados, creando notificación...');
+            
+            try {
+                console.log(`✅ Creando notificación...`);
+                
+                // Usar icono simple en base64 para evitar problemas de CORS
+                const iconData = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjNEZBRjUwIi8+Cjx0ZXh0IHg9IjE2IiB5PSIyMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iMTYiPvCfkqE8L3RleHQ+Cjwvc3ZnPgo=';
+                
+                const notification = new Notification(title, { 
+                    body,
+                    icon: iconData,
+                    badge: iconData,
+                    tag: 'cabin-system',
+                    requireInteraction: false,
+                    silent: false
+                });
+                
+                console.log(`✅ Notificación creada exitosamente:`, notification);
+                
+                // Registrar que se mostró esta notificación
+                window.lastNotificationShown = window.lastNotificationShown || {};
+                window.lastNotificationShown[notificationKey] = now;
+                
+                // Auto-cerrar notificación después de 5 segundos
+                setTimeout(() => {
+                    try {
                         notification.close();
                         console.log(`🔒 Notificación cerrada automáticamente`);
-                    }, 5000);
-                    
-                    return notification;
-                } catch (error) {
-                    console.error('❌ Error al mostrar notificación:', error);
-                    // Fallback: mostrar alerta
-                    alert(`${title}\n${body}`);
+                    } catch (closeError) {
+                        console.warn(`⚠️ Error al cerrar notificación:`, closeError);
+                    }
+                }, 5000);
+                
+                return notification;
+            } catch (error) {
+                console.error('❌ Error al mostrar notificación:', error);
+                // Fallback: mostrar en mensaje de estado
+                if (statusMessage) {
+                    statusMessage.textContent = `🔔 ${title}: ${body}`;
                 }
-            } else {
-                console.log('❌ Notificaciones no disponibles o no permitidas');
-                // Fallback: mostrar en el mensaje de estado
-                statusMessage.textContent = `🔔 ${title}: ${body}`;
-                console.log(`📝 Mostrando en mensaje de estado como fallback`);
+                return null;
             }
         }
 
@@ -1906,9 +1893,9 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
                 roomNumberSpan.innerText = cabin.roomNumber || '';
                 
                 // NO sobrescribir el timer si ya tiene contenido (evita que se resetee)
-                if (!timerSpan.innerText || timerSpan.innerText === '') {
-                    console.log(`🔄 Timer vacío para cabaña ${cabinNumber}, calculando tiempo...`);
-                    // Solo calcular tiempo si no hay texto ya establecido
+                if (!timerSpan.innerText || timerSpan.innerText === '' || timerSpan.innerText === 'NaNm NaNs') {
+                    console.log(`🔄 Timer vacío o inválido para cabaña ${cabinNumber}, calculando tiempo...`);
+                    // Solo calcular tiempo si no hay texto válido ya establecido
                     if (cabin.startTime) {
                         const elapsed = new Date().getTime() - new Date(cabin.startTime).getTime();
                         const remaining = TIMER_DURATION_MS - elapsed;
@@ -1923,6 +1910,11 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
                         }
                     } else {
                         console.log(`⚠️ No hay startTime para cabaña ${cabinNumber}`);
+                        // Establecer tiempo por defecto si no hay startTime
+                        const initialMinutes = Math.floor(TIMER_DURATION_MS / 60000);
+                        const initialSeconds = Math.floor((TIMER_DURATION_MS % 60000) / 1000);
+                        timerSpan.innerText = `${initialMinutes}m ${initialSeconds}s`;
+                        console.log(`⏰ Timer por defecto establecido: ${initialMinutes}m ${initialSeconds}s`);
                     }
                 } else {
                     console.log(`✅ Timer preservado para cabaña ${cabinNumber}: ${timerSpan.innerText}`);
@@ -1996,7 +1988,18 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
                 console.error(`❌ Timer text no encontrado para cabaña ${cabinNumber}`);
             }
             
-            updateCabinUI(cabinNumber);
+            // NO llamar updateCabinUI aquí - ya se estableció el timer manualmente
+            // Solo actualizar las clases CSS sin tocar el contenido del timer
+            const cabinElement = cabin.element;
+            if (cabinElement) {
+                cabinElement.classList.remove('available', 'occupied', 'expired');
+                cabinElement.classList.add('out');
+                
+                // Mostrar timer y room number
+                if (cabin.timerText) cabin.timerText.classList.add('visible');
+                if (cabin.roomNumberElement) cabin.roomNumberElement.classList.add('visible');
+                if (cabin.roomNumberElement) cabin.roomNumberElement.innerText = roomNumber;
+            }
 
             // Guardar en Firebase
             saveCabinToFirebase(cabinNumber, { 
@@ -2187,7 +2190,85 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
         initializeFirebase();
         checkNotificationPermission();
         
-        // Diagnóstico automático de notificaciones después de 2 segundos
+        // Función para verificar estado real de notificaciones
+        function verifyNotificationState() {
+            if (!('Notification' in window)) {
+                console.log('❌ Notificaciones no soportadas');
+                return;
+            }
+            
+            const nativePermission = Notification.permission;
+            const canShowNotifications = notificationPermission === 'granted' || nativePermission === 'granted';
+            
+            console.log(`📱 Estado de notificaciones:`, {
+                native: nativePermission,
+                local: notificationPermission,
+                canShow: canShowNotifications
+            });
+            
+            // Si los permisos nativos están concedidos, sincronizar
+            if (nativePermission === 'granted' && notificationPermission !== 'granted') {
+                notificationPermission = 'granted';
+                updateNotificationUI();
+                console.log('✅ Estado local sincronizado con permisos nativos');
+            }
+        }
+        
+        // Verificar estado después de 3 segundos
+        setTimeout(verifyNotificationState, 3000);
+        
+        // Función para sincronizar permisos de notificaciones
+        function syncNotificationPermissions() {
+            if ('Notification' in window) {
+                const currentPermission = Notification.permission;
+                
+                // Si el estado nativo es 'granted', actualizar el local
+                if (currentPermission === 'granted') {
+                    if (notificationPermission !== 'granted') {
+                        console.log(`✅ Permisos nativos concedidos, actualizando estado local`);
+                        notificationPermission = 'granted';
+                        updateNotificationUI();
+                    }
+                }
+                // Si el estado local es 'granted' pero el nativo no, mantener el local
+                else if (notificationPermission === 'granted') {
+                    console.log(`✅ Manteniendo permisos locales concedidos`);
+                }
+                // Para otros casos, sincronizar normalmente
+                else if (currentPermission !== notificationPermission) {
+                    console.log(`🔄 Sincronizando permisos: ${notificationPermission} → ${currentPermission}`);
+                    notificationPermission = currentPermission;
+                    updateNotificationUI();
+                }
+            }
+        }
+        
+        // Sincronizar permisos cada 30 segundos (menos frecuente para evitar conflictos)
+        setInterval(syncNotificationPermissions, 30000);
+        
+        // Limpiar historial de notificaciones cada 2 minutos para evitar acumulación
+        const notificationCleanupInterval = setInterval(() => {
+            if (window.lastNotificationShown) {
+                const now = Date.now();
+                const cutoff = now - 120000; // 2 minutos
+                
+                Object.keys(window.lastNotificationShown).forEach(key => {
+                    if (window.lastNotificationShown[key] < cutoff) {
+                        delete window.lastNotificationShown[key];
+                    }
+                });
+                
+                console.log(`🧹 Historial de notificaciones limpiado`);
+            }
+        }, 120000);
+        
+        // Limpiar intervalos al cerrar la página
+        window.addEventListener('beforeunload', () => {
+            clearInterval(notificationCleanupInterval);
+            clearInterval(syncNotificationPermissions);
+        });
+        
+                // Diagnóstico automático de notificaciones después de 2 segundos
         setTimeout(() => {
             console.log(`🔍 === DIAGNÓSTICO AUTOMÁTICO DE NOTIFICACIONES ===`);
             console.log(`📱 Estado del navegador:`, {
@@ -2201,13 +2282,26 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
                 notificationAvailable: 'Notification' in window,
                 permission: 'Notification' in window ? Notification.permission : 'N/A',
                 maxActions: 'Notification' in window ? Notification.maxActions : 'N/A',
-                permissionDefault: 'Notification' in window ? Notification.permissionDefault : 'N/A'
+                permissionDefault: 'Notification' in window ? Notification.permissionDefault : 'N/A',
+                localPermission: notificationPermission
             });
+            
+            // Sincronizar estado si es necesario
+            if ('Notification' in window && notificationPermission !== Notification.permission) {
+                console.log(`🔄 Sincronizando estado de permisos...`);
+                notificationPermission = Notification.permission;
+                updateNotificationUI();
+            }
             
             if ('Notification' in window) {
                 console.log(`✅ Notificaciones soportadas`);
                 if (Notification.permission === 'granted') {
                     console.log(`✅ Permisos concedidos - Las notificaciones deberían funcionar`);
+                    // Asegurar que la variable local esté sincronizada
+                    if (notificationPermission !== 'granted') {
+                        notificationPermission = 'granted';
+                        console.log(`🔄 Variable local sincronizada a 'granted'`);
+                    }
                 } else if (Notification.permission === 'denied') {
                     console.log(`❌ Permisos denegados - El usuario bloqueó las notificaciones`);
                 } else {
@@ -2238,45 +2332,18 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
         console.log('3. Ve a Realtime Database > Rules');
         console.log('4. Aplica las reglas que te proporcioné anteriormente');
 
-        // Timeout de seguridad global para evitar carga infinita
+        // Timeout de seguridad unificado para evitar carga infinita
         setTimeout(() => {
             const loadingIndicator = document.getElementById('loadingIndicator');
             const cabanasGrid = document.getElementById('cabanasGrid');
             
             if (loadingIndicator && cabanasGrid.classList.contains('hidden')) {
-                console.warn('⚠️ Timeout global: Forzando mostrar grid sin reinicializar');
+                console.warn('⚠️ Timeout de seguridad: Forzando mostrar grid');
                 showCabanasGrid();
-                // NO reinicializar - esto resetea los datos de Firebase
-                statusMessage.textContent = '⚠️ Sistema mostrado con timeout. Verificando conexión...';
-            }
-        }, 5000); // 5 segundos máximo
-
-        // Timeout adicional más agresivo
-        setTimeout(() => {
-            const loadingIndicator = document.getElementById('loadingIndicator');
-            const cabanasGrid = document.getElementById('cabanasGrid');
-            
-            if (loadingIndicator && cabanasGrid.classList.contains('hidden')) {
-                console.warn('🚨 Timeout crítico: Forzando mostrar grid');
-                showCabanasGrid();
-                // NO reinicializar - esto resetea los datos de Firebase
-                statusMessage.textContent = '🚨 Sistema mostrado por timeout crítico. Verificando estado...';
+                statusMessage.textContent = '⚠️ Sistema mostrado por timeout de seguridad. Verificando conexión...';
+                updateConnectionStatus('error', 'Sistema en modo de seguridad');
             }
         }, 8000); // 8 segundos máximo
-
-        // Timeout final de emergencia
-        setTimeout(() => {
-            const loadingIndicator = document.getElementById('loadingIndicator');
-            const cabanasGrid = document.getElementById('cabanasGrid');
-            
-            if (loadingIndicator && cabanasGrid.classList.contains('hidden')) {
-                console.error('💥 Timeout de emergencia: Forzando mostrar sistema');
-                showCabanasGrid();
-                // NO reinicializar - esto resetea los datos de Firebase
-                statusMessage.textContent = '💥 Sistema mostrado por timeout de emergencia. Verificar configuración.';
-                updateConnectionStatus('error', 'Sistema en modo de emergencia');
-            }
-        }, 10000); // 10 segundos máximo
 
         // Event listener para botón de reintentar
         document.getElementById('retryButton').addEventListener('click', () => {
@@ -2306,107 +2373,26 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
             isFirebaseReady = false;
         });
 
-        // Verificación automática de Firebase después de 2 segundos
+        // Verificación automática de Firebase después de 3 segundos
         setTimeout(() => {
             if (!isFirebaseReady) {
-                console.warn('⚠️ Firebase no se inicializó en 2 segundos, verificando estado...');
+                console.warn('⚠️ Firebase no se inicializó en 3 segundos, verificando estado...');
                 const loadingIndicator = document.getElementById('loadingIndicator');
                 const cabanasGrid = document.getElementById('cabanasGrid');
                 
                 if (loadingIndicator && cabanasGrid.classList.contains('hidden')) {
-                    console.log('🔄 Forzando mostrar grid sin reinicializar...');
+                    console.log('🔄 Forzando mostrar grid...');
                     showCabanasGrid();
                     statusMessage.textContent = '⚠️ Sistema mostrado por verificación automática. Verificando Firebase...';
                 }
             }
-        }, 2000);
+        }, 3000);
 
-        // Función de debug para verificar estado de las cabañas
-        function debugCabanas() {
-            console.log('🔍 === DEBUG ESTADO DE CABAÑAS ===');
-            console.log('📊 Estado general:', {
-                isFirebaseReady,
-                totalCabanas: NUM_CABANAS,
-                cabanasArray: cabanas
-            });
-            
-            for (let i = 1; i <= NUM_CABANAS; i++) {
-                if (cabanas[i]) {
-                    const cabin = cabanas[i];
-                    console.log(`🏠 Cabaña ${i}:`, {
-                        status: cabin.status,
-                        roomNumber: cabin.roomNumber,
-                        startTime: cabin.startTime,
-                        lastUpdated: cabin.lastUpdated,
-                        hasElement: !!cabin.element,
-                        elementClasses: cabin.element ? cabin.element.className : 'N/A',
-                        roomNumberText: cabin.roomNumberElement ? cabin.roomNumberElement.innerText : 'N/A',
-                        timerText: cabin.timerText ? cabin.timerText.innerText : 'N/A'
-                    });
-                }
-            }
-            
-            // Verificar elementos del DOM
-            const cabanasGrid = document.getElementById('cabanasGrid');
-            console.log('📱 Estado del DOM:', {
-                gridVisible: !cabanasGrid.classList.contains('hidden'),
-                gridChildren: cabanasGrid ? cabanasGrid.children.length : 'N/A',
-                gridHTML: cabanasGrid ? cabanasGrid.innerHTML.substring(0, 200) + '...' : 'N/A'
-            });
-        }
 
-        // Función para forzar la carga de datos
-        async function forceLoadData() {
-            console.log('🔄 === FORZANDO CARGA DE DATOS ===');
-            console.log('Estado actual:', {
-                isFirebaseReady,
-                db: !!db,
-                auth: !!auth,
-                cabanasRef: !!cabanasRef,
-                authUser: !!authUser
-            });
-            
-            if (!db) {
-                console.error('❌ Base de datos no inicializada');
-                statusMessage.textContent = '❌ Base de datos no inicializada';
-                return;
-            }
-            
-            try {
-                // Forzar carga sin verificar isFirebaseReady
-                const snapshot = await get(ref(db, CABANAS_PATH));
-                console.log('📸 Snapshot forzado:', snapshot);
-                
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    console.log('📊 Datos forzados:', data);
-                    
-                    Object.keys(data).forEach(cabinId => {
-                        const cabinData = data[cabinId];
-                        const cabinNumber = parseInt(cabinId);
-                        
-                        if (cabanas[cabinNumber]) {
-                            cabanas[cabinNumber].status = cabinData.status || 'available';
-                            cabanas[cabinNumber].roomNumber = cabinData.roomNumber || null;
-                            cabanas[cabinNumber].startTime = cabinData.startTime || null;
-                            
-                            console.log(`🔄 Forzando actualización cabaña ${cabinNumber}:`, cabinData);
-                            updateCabinUI(cabinNumber);
-                        }
-                    });
-                    
-                    statusMessage.textContent = `✅ ${Object.keys(data).length} cabañas cargadas forzadamente`;
-                } else {
-                    console.log('📭 No hay datos en Firebase');
-                    statusMessage.textContent = '📭 No hay datos en Firebase';
-                }
-            } catch (error) {
-                console.error('❌ Error al forzar carga:', error);
-                statusMessage.textContent = `❌ Error: ${error.message}`;
-            }
-        }
 
-        // Función para forzar la activación de notificaciones
+
+
+                // Función para forzar la activación de notificaciones
         function forceEnableNotifications() {
             console.log(`🚀 === FORZANDO ACTIVACIÓN DE NOTIFICACIONES ===`);
             
@@ -2414,7 +2400,7 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
                 alert('Tu navegador no soporta notificaciones. Actualiza a una versión más reciente.');
                 return;
             }
-            
+
             if (Notification.permission === 'denied') {
                 console.log(`❌ Permisos denegados, mostrando instrucciones...`);
                 const instructions = `
@@ -2435,112 +2421,63 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
                 requestNotificationPermission();
             } else if (Notification.permission === 'granted') {
                 console.log(`✅ Permisos ya concedidos`);
+                // Sincronizar estado antes de mostrar notificación
+                notificationPermission = 'granted';
                 showNotification('✅ Notificaciones Activas', 'Las notificaciones ya están funcionando correctamente!');
             }
         }
 
-        // Función para probar notificaciones
-        function testNotifications() {
-            console.log(`🧪 === PRUEBA DE NOTIFICACIONES ===`);
-            console.log(`📱 Estado actual:`, {
-                notificationAvailable: 'Notification' in window,
-                permission: 'Notification' in window ? Notification.permission : 'N/A',
-                notificationPermission: notificationPermission
-            });
+
+        
+        // Función de prueba alternativa más simple
+        function testNotificationSimple() {
+            console.log(`🧪 === PRUEBA SIMPLE DE NOTIFICACIÓN ===`);
             
-            if ('Notification' in window) {
-                if (Notification.permission === 'granted') {
-                    console.log(`✅ Permisos concedidos, probando notificación...`);
+            if (!('Notification' in window)) {
+                alert('Tu navegador no soporta notificaciones');
+                return;
+            }
+            
+            if (Notification.permission === 'granted') {
+                try {
+                    const notification = new Notification('🧪 Prueba Simple', {
+                        body: '¡Esta es una notificación de prueba!',
+                        icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjNEZBRjUwIi8+Cjx0ZXh0IHg9IjE2IiB5PSIyMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iMTYiPvCfkqE8L3RleHQ+Cjwvc3ZnPgo='
+                    });
                     
-                    // Probar notificación simple primero
-                    try {
-                        const testNotif = new Notification('🧪 Prueba Simple', {
-                            body: 'Esta es una notificación de prueba directa',
-                            icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><rect width="32" height="32" fill="%234CAF50"/><text x="16" y="20" text-anchor="middle" fill="white" font-size="16">🔔</text></svg>'
-                        });
-                        console.log(`✅ Notificación directa creada:`, testNotif);
-                        
-                        // Cerrar después de 3 segundos
-                        setTimeout(() => {
-                            testNotif.close();
-                            console.log(`🔒 Notificación de prueba cerrada`);
-                        }, 3000);
-                        
-                    } catch (directError) {
-                        console.error(`❌ Error con notificación directa:`, directError);
-                    }
+                    console.log('✅ Notificación de prueba creada exitosamente');
                     
-                    // También probar con nuestra función
-                    showNotification('🧪 Prueba de Notificación', 'Si ves esto, las notificaciones funcionan correctamente!');
+                    // Cerrar después de 5 segundos
+                    setTimeout(() => {
+                        notification.close();
+                        console.log('🔒 Notificación de prueba cerrada');
+                    }, 5000);
                     
-                } else if (Notification.permission === 'denied') {
-                    console.log(`❌ Permisos denegados`);
-                    alert('Las notificaciones están denegadas. Ve a la configuración del navegador para habilitarlas.');
-                } else {
-                    console.log(`⏳ Permisos no solicitados, solicitando...`);
-                    requestNotificationPermission();
+                } catch (error) {
+                    console.error('❌ Error al crear notificación de prueba:', error);
+                    alert(`Error: ${error.message}`);
                 }
+            } else if (Notification.permission === 'denied') {
+                alert('Las notificaciones están denegadas. Ve a la configuración del navegador.');
             } else {
-                console.log(`❌ Notificaciones no soportadas en este navegador`);
+                alert('Solicitando permisos de notificación...');
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        testNotificationSimple();
+                    } else {
+                        alert('Permisos denegados');
+                    }
+                });
             }
         }
 
-        // Función para verificar conexión con Firebase
-        async function verifyFirebaseConnection() {
-            console.log('🔍 === VERIFICACIÓN DE FIREBASE ===');
-            
-            try {
-                // Verificar inicialización
-                console.log('📋 Estado de Firebase:', {
-                    app: !!app,
-                    db: !!db,
-                    auth: !!auth,
-                    isFirebaseReady
-                });
-                
-                // Verificar autenticación
-                if (auth) {
-                    console.log('🔐 Estado de autenticación:', {
-                        currentUser: auth.currentUser ? auth.currentUser.uid : 'No autenticado',
-                        authState: 'Verificando...'
-                    });
-                    
-                    // Intentar autenticación anónima
-                    try {
-                        const userCredential = await signInAnonymously(auth);
-                        console.log('✅ Autenticación anónima exitosa:', userCredential.user.uid);
-                    } catch (authError) {
-                        console.error('❌ Error en autenticación anónima:', authError);
-                    }
-                }
-                
-                // Verificar base de datos
-                if (db) {
-                    console.log('🗄️ Estado de base de datos:', {
-                        databaseURL: firebaseConfig.databaseURL,
-                        cabanasRef: !!cabanasRef
-                    });
-                    
-                    // Intentar lectura de prueba
-                    try {
-                        const testRef = ref(db, 'test');
-                        console.log('✅ Referencia de base de datos creada correctamente');
-                    } catch (dbError) {
-                        console.error('❌ Error al crear referencia de BD:', dbError);
-                    }
-                }
-                
-                // Verificar reglas
-                console.log('⚠️ VERIFICACIÓN DE REGLAS:');
-                console.log('1. Ve a console.firebase.google.com');
-                console.log('2. Proyecto: secrets-e9d81');
-                console.log('3. Realtime Database > Rules');
-                console.log('4. Aplica las reglas que te di anteriormente');
-                
-            } catch (error) {
-                console.error('❌ Error en verificación de Firebase:', error);
-            }
-        }
+        // Hacer las funciones disponibles globalmente
+        window.testNotificationSimple = testNotificationSimple;
+        window.forceEnableNotifications = forceEnableNotifications;
+        window.showNotification = showNotification;
+        window.requestNotificationPermission = requestNotificationPermission;
+
+
 
         // Agregar animaciones al cargar la página
         window.addEventListener('load', () => {
