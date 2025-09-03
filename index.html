@@ -902,6 +902,9 @@
                 <button id="retryButton" class="retry-button hidden">
                     <i class="fas fa-redo mr-2"></i>Reintentar Conexión
                 </button>
+                <button id="diagnosticButton" class="retry-button hidden">
+                    <i class="fas fa-bug mr-2"></i>Ejecutar Diagnóstico
+                </button>
             </div>
         </div>
 
@@ -1202,7 +1205,7 @@
                     }, 500);
                     
                     return true;
-                } else if                 } else if (permission === 'denied') {
+                } else if (permission === 'denied') {
                     console.log(`❌ Permiso denegado`);
                     updateNotificationUI();
                     
@@ -1263,16 +1266,24 @@
         // Función para mostrar botón de reintentar
         function showRetryButton() {
             const retryButton = document.getElementById('retryButton');
+            const diagnosticButton = document.getElementById('diagnosticButton');
             if (retryButton) {
                 retryButton.classList.remove('hidden');
+            }
+            if (diagnosticButton) {
+                diagnosticButton.classList.remove('hidden');
             }
         }
 
         // Función para ocultar botón de reintentar
         function hideRetryButton() {
             const retryButton = document.getElementById('retryButton');
+            const diagnosticButton = document.getElementById('diagnosticButton');
             if (retryButton) {
                 retryButton.classList.add('hidden');
+            }
+            if (diagnosticButton) {
+                diagnosticButton.classList.add('hidden');
             }
         }
 
@@ -1481,28 +1492,46 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
         // Función para inicializar Firebase y autenticación
         async function initializeFirebase() {
             try {
-                console.log('�� Iniciando Firebase...');
+                console.log('🚀 Iniciando Firebase...');
                 
                 // Verificar que Firebase esté disponible
                 if (!auth || !db) {
                     throw new Error('Firebase no está inicializado correctamente');
                 }
                 
+                // Verificar conectividad de red
+                if (!navigator.onLine) {
+                    throw new Error('No hay conexión a internet. Verifica tu conexión de red.');
+                }
+                
                 // Timeout de seguridad para evitar carga infinita
                 const timeoutPromise = new Promise((_, reject) => {
-                    setTimeout(() => reject(new Error('Timeout: Firebase tardó demasiado en responder')), 10000);
+                    setTimeout(() => reject(new Error('Timeout: Firebase tardó demasiado en responder (10 segundos)')), 10000);
                 });
                 
                 // Autenticación anónima con timeout
                 let userCredential;
                 try {
+                    console.log('🔐 Intentando autenticación anónima...');
                     userCredential = await Promise.race([
                         signInAnonymously(auth),
                         timeoutPromise
                     ]);
                 } catch (authError) {
                     console.error('❌ Error en autenticación:', authError);
-                    throw new Error(`Error de autenticación: ${authError.message}`);
+                    
+                    // Proporcionar información específica sobre el error
+                    let errorMessage = `Error de autenticación: ${authError.message}`;
+                    
+                    if (authError.code === 'auth/network-request-failed') {
+                        errorMessage = 'Error de red: No se puede conectar a Firebase. Verifica tu conexión a internet.';
+                    } else if (authError.code === 'auth/too-many-requests') {
+                        errorMessage = 'Demasiadas solicitudes: Firebase está temporalmente sobrecargado. Intenta en unos minutos.';
+                    } else if (authError.code === 'auth/operation-not-allowed') {
+                        errorMessage = 'Autenticación anónima no habilitada en Firebase. Contacta al administrador.';
+                    }
+                    
+                    throw new Error(errorMessage);
                 }
                 
                 if (!userCredential || !userCredential.user) {
@@ -1550,27 +1579,63 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
                 
             } catch (error) {
                 console.error('❌ Error al inicializar Firebase:', error);
-                statusMessage.textContent = `❌ Error de conexión con Firebase: ${error.message}. La aplicación requiere conexión a Firebase para funcionar.`;
+                statusMessage.textContent = `❌ Error de conexión con Firebase: ${error.message}`;
                 updateConnectionStatus('error', 'Error de conexión con Firebase');
                 
-                // NO inicializar sin Firebase - mantener en estado de carga
+                // Mostrar botón de reintentar
                 showRetryButton();
                 
-                // Mostrar mensaje de error crítico
+                // Mostrar mensaje de error detallado
                 const loadingIndicator = document.getElementById('loadingIndicator');
                 if (loadingIndicator) {
+                    // Limpiar mensajes de error previos
+                    const existingErrors = loadingIndicator.querySelectorAll('.text-red-600');
+                    existingErrors.forEach(err => err.remove());
+                    
                     const errorMessage = document.createElement('div');
                     errorMessage.className = 'text-red-600 font-semibold text-center mt-4 p-4 bg-red-50 border border-red-200 rounded-lg';
                     errorMessage.innerHTML = `
                         <div class="flex items-center justify-center gap-3 mb-2">
                             <i class="fas fa-exclamation-triangle text-xl"></i>
-                            <span class="text-lg">Error Crítico de Conexión</span>
+                            <span class="text-lg">Error de Conexión</span>
                         </div>
-                        <p class="text-sm text-red-700">La aplicación requiere conexión a Firebase para funcionar.</p>
-                        <p class="text-xs text-red-600 mt-2">Verifica tu conexión a internet y las configuraciones de Firebase.</p>
+                        <p class="text-sm text-red-700 mb-3">${error.message}</p>
+                        <div class="text-xs text-red-600 space-y-1">
+                            <p><strong>Posibles soluciones:</strong></p>
+                            <ul class="list-disc list-inside space-y-1 ml-2">
+                                <li>Verifica tu conexión a internet</li>
+                                <li>Recarga la página (F5)</li>
+                                <li>Verifica que las reglas de Firebase estén configuradas</li>
+                                <li>Contacta al administrador si el problema persiste</li>
+                            </ul>
+                        </div>
+                        <div class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                            <p class="text-xs text-blue-700">
+                                <strong>Información técnica:</strong><br>
+                                Proyecto: secrets-e9d81<br>
+                                Base de datos: Realtime Database<br>
+                                Autenticación: Anónima
+                            </p>
+                        </div>
                     `;
                     loadingIndicator.appendChild(errorMessage);
                 }
+                
+                // Mostrar información adicional en consola para debugging
+                console.log('🔍 === DIAGNÓSTICO DE ERROR ===');
+                console.log('📱 Estado del navegador:', {
+                    userAgent: navigator.userAgent,
+                    onLine: navigator.onLine,
+                    cookieEnabled: navigator.cookieEnabled,
+                    platform: navigator.platform
+                });
+                console.log('🔥 Estado de Firebase:', {
+                    app: !!app,
+                    db: !!db,
+                    auth: !!auth,
+                    isFirebaseReady: isFirebaseReady
+                });
+                console.log('📋 Configuración:', firebaseConfig);
             }
         }
 
@@ -2199,1007 +2264,8 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
                 // Mostrar notificación de expiración con múltiples métodos
                 console.log(`🔔 Mostrando notificación de expiración...`);
                 
-                // Notificación principal (push)
-                showNotification(`🚨 ¡TIEMPO EXPIRADO! Cabaña ${cabinNumber}`, `La cabaña de la Habitaci                } else if (permission === 'denied') {
-                    console.log(`❌ Permiso denegado`);
-                    updateNotificationUI();
-                    
-                    // Mostrar instrucciones para habilitar manualmente
-                    showAlertModal('�� Permisos Denegados', 
-                        'Las notificaciones están bloqueadas. Para habilitarlas:\n\n' +
-                        '1. Haz clic en el candado 🔒 en la barra de direcciones\n' +
-                        '2. Selecciona "Permitir" en notificaciones\n' +
-                        '3. Recarga la página'
-                    );
-                    
-                    return false;
-                } else {
-                    console.log(`⏳ Permiso no decidido`);
-                    updateNotificationUI();
-                    return false;
-                }
-            } catch (error) {
-                console.error('❌ Error al solicitar permisos:', error);
-                return false;
-            }
-        }
-
-        // Función para mostrar/ocultar el grid de cabañas
-        function showCabanasGrid() {
-            const loadingIndicator = document.getElementById('loadingIndicator');
-            const cabanasGrid = document.getElementById('cabanasGrid');
-            
-            if (!loadingIndicator || !cabanasGrid) {
-                console.error('❌ Elementos del DOM no encontrados para showCabanasGrid');
-                return;
-            }
-            
-            // SOLO mostrar grid si Firebase está listo
-            if (!isFirebaseReady) {
-                console.warn('⚠️ Intentando mostrar grid sin Firebase listo - DENEGADO');
-                return;
-            }
-            
-            loadingIndicator.classList.add('hidden');
-            cabanasGrid.classList.remove('hidden');
-            
-            // Verificar estado de las cabañas
-            console.log('🔍 Estado final de las cabañas:');
-            for (let i = 1; i <= NUM_CABANAS; i++) {
-                if (cabanas[i]) {
-                    console.log(`Cabaña ${i}:`, {
-                        status: cabanas[i].status,
-                        roomNumber: cabanas[i].roomNumber,
-                        startTime: cabanas[i].startTime,
-                        hasElement: !!cabanas[i].element,
-                        elementClasses: cabanas[i].element ? cabanas[i].element.className : 'N/A'
-                    });
-                }
-            }
-        }
-
-        // Función para mostrar botón de reintentar
-        function showRetryButton() {
-            const retryButton = document.getElementById('retryButton');
-            if (retryButton) {
-                retryButton.classList.remove('hidden');
-            }
-        }
-
-        // Función para ocultar botón de reintentar
-        function hideRetryButton() {
-            const retryButton = document.getElementById('retryButton');
-            if (retryButton) {
-                retryButton.classList.add('hidden');
-            }
-        }
-
-        // Función para actualizar el indicador de estado de conexión
-        function updateConnectionStatus(status, message) {
-            const connectionStatus = document.getElementById('connectionStatus');
-            const statusDot = connectionStatus.querySelector('.status-dot');
-            const statusText = connectionStatus.querySelector('.status-text');
-            
-            // Remover clases anteriores
-            statusDot.classList.remove('connecting', 'connected', 'error');
-            
-            // Agregar nueva clase
-            statusDot.classList.add(status);
-            statusText.textContent = message;
-        }
-
-        // Función para abrir configuración del navegador
-        function openNotificationSettings() {
-            if ('Notification' in window && Notification.permission === 'denied') {
-                // Mostrar instrucciones para el usuario
-                const instructions = `
-🔧 Para activar las notificaciones:
-
-1. Haz clic en el ícono de candado 🔒 en la barra de direcciones
-2. Selecciona "Permitir" en la opción de notificaciones
-3. Recarga la página
-
-O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
-                `;
-                alert(instructions);
-            }
-        }
-        
-        // Sistema de notificaciones push robusto
-        function showNotification(title, body) {
-            console.log(`🔔 === INTENTANDO MOSTRAR NOTIFICACIÓN PUSH ===`);
-            
-            // Verificar que no se haya mostrado la misma notificación recientemente
-            const notificationKey = `${title}-${body}`;
-            const now = Date.now();
-            const lastShown = window.lastNotificationShown || {};
-            
-            if (lastShown[notificationKey] && (now - lastShown[notificationKey]) < 5000) {
-                console.log(`⚠️ Notificación mostrada recientemente, evitando duplicado`);
-                return;
-            }
-            
-            let notificationShown = false;
-            
-            // INTENTO 1: Notificación push del navegador (más robusta)
-            if ('Notification' in window && 'serviceWorker' in navigator) {
-                const hasPermission = notificationPermission === 'granted' || Notification.permission === 'granted';
-                
-                if (hasPermission) {
-                    try {
-                        console.log(`✅ Creando notificación push...`);
-                        
-                        // Crear notificación con configuración optimizada para push
-                        const notification = new Notification(title, { 
-                            body,
-                            icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjNEZBRjUwIi8+Cjx0ZXh0IHg9IjE2IiB5PSIyMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iMTYiPvCfkqE8L3RleHQ+Cjwvc3ZnPgo=',
-                            badge: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjNEZBRjUwIi8+Cjx0ZXh0IHg9IjE2IiB5PSIyMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iMTYiPvCfkqE8L3RleHQ+Cjwvc3ZnPgo=',
-                            tag: 'cabin-system',
-                            requireInteraction: true,
-                            silent: false,
-                            vibrate: [200, 100, 200], // Vibración para móviles
-                            actions: [
-                                {
-                                    action: 'view',
-                                    title: 'Ver Cabaña',
-                                    icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjNEZBRjUwIi8+Cjx0ZXh0IHg9IjE2IiB5PSIyMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iMTYiPvCfkqE8L3RleHQ+Cjwvc3ZnPgo='
-                                },
-                                {
-                                    action: 'dismiss',
-                                    title: 'Descartar',
-                                    icon: 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiBmaWxsPSIjNEZBRjUwIi8+Cjx0ZXh0IHg9IjE2IiB5PSIyMCIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZmlsbD0id2hpdGUiIGZvbnQtc2l6ZT0iMTYiPvCfkqE8L3RleHQ+Cjwvc3ZnPgo='
-                                }
-                            ]
-                        });
-                        
-                        // Event listeners para las acciones de la notificación
-                        notification.onclick = function() {
-                            console.log('🔔 Notificación clickeada');
-                            window.focus();
-                            this.close();
-                        };
-                        
-                        notification.onactionclick = function(event) {
-                            console.log('🔔 Acción de notificación clickeada:', event.action);
-                            if (event.action === 'view') {
-                                window.focus();
-                            }
-                            this.close();
-                        };
-                        
-                        console.log(`✅ Notificación push creada exitosamente`);
-                        notificationShown = true;
-                        
-                        // Registrar que se mostró esta notificación
-                        window.lastNotificationShown = window.lastNotificationShown || {};
-                        window.lastNotificationShown[notificationKey] = now;
-                        
-                        // Auto-cerrar notificación después de 15 segundos
-                        setTimeout(() => {
-                            try {
-                                notification.close();
-                                console.log(`🔒 Notificación cerrada automáticamente`);
-                            } catch (closeError) {
-                                console.warn(`⚠️ Error al cerrar notificación:`, closeError);
-                            }
-                        }, 15000);
-                        
-                    } catch (error) {
-                        console.error('❌ Error al crear notificación push:', error);
-                    }
-                } else {
-                    console.log('📱 Permisos de notificación no concedidos');
-                }
-            }
-            
-            // INTENTO 2: Modal de alerta de emergencia
-            if (!notificationShown) {
-                console.log(`📱 Mostrando modal de alerta como fallback...`);
-                showAlertModal(title, body);
-            }
-            
-            // INTENTO 3: Mensaje en estado (siempre visible)
-            if (statusMessage) {
-                statusMessage.textContent = `🔔 ${title}: ${body}`;
-                statusMessage.style.backgroundColor = '#fef3c7';
-                statusMessage.style.borderColor = '#f59e0b';
-                statusMessage.style.animation = 'pulse 1s infinite';
-                console.log(`📝 Mensaje mostrado en estado: ${title}: ${body}`);
-                
-                // Restaurar estilo después de 10 segundos
-                setTimeout(() => {
-                    statusMessage.style.backgroundColor = '';
-                    statusMessage.style.borderColor = '';
-                    statusMessage.style.animation = '';
-                }, 10000);
-            }
-            
-            return notificationShown;
-        }
-
-        // Función para mostrar el modal con animación
-        function showModal() {
-            cabinModal.classList.add('visible');
-        }
-
-        // Función para ocultar el modal con animación
-        function hideModal() {
-            cabinModal.classList.remove('visible');
-        }
-        
-        // Función para mostrar modal de alerta de emergencia
-        function showAlertModal(title, body) {
-            const alertModal = document.getElementById('alertModal');
-            const alertModalTitle = document.getElementById('alertModalTitle');
-            const alertModalBody = document.getElementById('alertModalBody');
-            
-            if (alertModal && alertModalTitle && alertModalBody) {
-                alertModalTitle.textContent = title;
-                alertModalBody.textContent = body;
-                alertModal.classList.add('visible');
-                
-                // Reproducir sonido de alerta
-                playAlertSound();
-                
-                // Auto-cerrar después de 15 segundos
-                setTimeout(() => {
-                    alertModal.classList.remove('visible');
-                }, 15000);
-            }
-        }
-        
-        // Función para reproducir sonido de alerta
-        function playAlertSound() {
-            try {
-                // Crear audio context para generar sonido
-                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                const oscillator = audioContext.createOscillator();
-                const gainNode = audioContext.createGain();
-                
-                oscillator.connect(gainNode);
-                gainNode.connect(audioContext.destination);
-                
-                // Configurar sonido de alerta
-                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-                oscillator.frequency.setValueAtTime(600, audioContext.currentTime + 0.1);
-                oscillator.frequency.setValueAtTime(800, audioContext.currentTime + 0.2);
-                
-                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
-                
-                oscillator.start(audioContext.currentTime);
-                oscillator.stop(audioContext.currentTime + 0.3);
-                
-                console.log('🔊 Sonido de alerta reproducido');
-            } catch (error) {
-                console.warn('⚠️ No se pudo reproducir sonido de alerta:', error);
-            }
-        }
-
-        // Función para inicializar Firebase y autenticación
-        async function initializeFirebase() {
-            try {
-                console.log('�� Iniciando Firebase...');
-                
-                // Verificar que Firebase esté disponible
-                if (!auth || !db) {
-                    throw new Error('Firebase no está inicializado correctamente');
-                }
-                
-                // Timeout de seguridad para evitar carga infinita
-                const timeoutPromise = new Promise((_, reject) => {
-                    setTimeout(() => reject(new Error('Timeout: Firebase tardó demasiado en responder')), 10000);
-                });
-                
-                // Autenticación anónima con timeout
-                let userCredential;
-                try {
-                    userCredential = await Promise.race([
-                        signInAnonymously(auth),
-                        timeoutPromise
-                    ]);
-                } catch (authError) {
-                    console.error('❌ Error en autenticación:', authError);
-                    throw new Error(`Error de autenticación: ${authError.message}`);
-                }
-                
-                if (!userCredential || !userCredential.user) {
-                    throw new Error('No se pudo obtener credenciales de usuario');
-                }
-                
-                authUser = userCredential.user;
-                console.log('✅ Usuario autenticado:', authUser.uid);
-                
-                // Configurar referencias de Firebase
-                cabanasRef = ref(db, CABANAS_PATH);
-                
-                // Inicializar la interfaz de cabañas
-                initializeCabanas();
-                
-                // IMPORTANTE: Marcar Firebase como listo ANTES de cargar datos
-                isFirebaseReady = true;
-                
-                // Configurar listener en tiempo real
-                setupRealtimeListener();
-                
-                // Cargar datos existentes con timeout
-                try {
-                    console.log('📥 Iniciando carga de datos...');
-                    console.log('🔥 isFirebaseReady establecido a:', isFirebaseReady);
-                    await Promise.race([
-                        loadCabanasFromFirebase(),
-                        timeoutPromise
-                    ]);
-                    console.log('✅ Datos cargados exitosamente');
-                } catch (timeoutError) {
-                    console.error('❌ Error al cargar datos:', timeoutError);
-                    throw new Error(`Error al cargar datos: ${timeoutError.message}`);
-                }
-                
-                updateConnectionStatus('connected', 'Conectado a Firebase - Sincronización en tiempo real');
-                
-                console.log('🎉 Firebase inicializado correctamente');
-                
-                // Esperar un momento para asegurar que la UI se actualice
-                setTimeout(() => {
-                    console.log('🔄 Mostrando grid después de actualización de UI...');
-                    showCabanasGrid();
-                }, 500);
-                
-            } catch (error) {
-                console.error('❌ Error al inicializar Firebase:', error);
-                statusMessage.textContent = `❌ Error de conexión con Firebase: ${error.message}. La aplicación requiere conexión a Firebase para funcionar.`;
-                updateConnectionStatus('error', 'Error de conexión con Firebase');
-                
-                // NO inicializar sin Firebase - mantener en estado de carga
-                showRetryButton();
-                
-                // Mostrar mensaje de error crítico
-                const loadingIndicator = document.getElementById('loadingIndicator');
-                if (loadingIndicator) {
-                    const errorMessage = document.createElement('div');
-                    errorMessage.className = 'text-red-600 font-semibold text-center mt-4 p-4 bg-red-50 border border-red-200 rounded-lg';
-                    errorMessage.innerHTML = `
-                        <div class="flex items-center justify-center gap-3 mb-2">
-                            <i class="fas fa-exclamation-triangle text-xl"></i>
-                            <span class="text-lg">Error Crítico de Conexión</span>
-                        </div>
-                        <p class="text-sm text-red-700">La aplicación requiere conexión a Firebase para funcionar.</p>
-                        <p class="text-xs text-red-600 mt-2">Verifica tu conexión a internet y las configuraciones de Firebase.</p>
-                    `;
-                    loadingIndicator.appendChild(errorMessage);
-                }
-            }
-        }
-
-        // Función para inicializar la interfaz y el estado de las cabañas
-        function initializeCabanas() {
-            // Limpiar grid existente
-            cabanasGrid.innerHTML = '';
-            
-            for (let i = 1; i <= NUM_CABANAS; i++) {
-                // Crea un objeto para el estado de la cabaña
-                cabanas[i] = {
-                    id: i,
-                    timerId: null,
-                    countdownInterval: null, // Para el intervalo del countdown
-                    status: 'available', // 'available', 'occupied', 'out', 'expired'
-                    startTime: null,
-                    element: null,
-                    timerText: null,
-                    roomNumberElement: null,
-                    roomNumber: null,
-                    lastUpdated: null,
-                    updatedBy: null
-                };
-
-                // Crea el elemento HTML para la cabaña
-                const cabinDiv = document.createElement('div');
-                cabinDiv.id = `cabin-${i}`;
-                cabinDiv.className = 'cabin-item available';
-                
-                // Crea el elemento para mostrar el número de la cabaña
-                const cabinNumberDisplay = document.createElement('span');
-                cabinNumberDisplay.className = 'cabin-number';
-                cabinNumberDisplay.innerText = i;
-                cabinDiv.appendChild(cabinNumberDisplay);
-
-                // Crea el elemento para mostrar el número de habitación
-                const roomNumberSpan = document.createElement('span');
-                roomNumberSpan.className = 'room-number';
-                roomNumberSpan.innerText = '';
-                cabinDiv.appendChild(roomNumberSpan);
-                
-                // Crea el texto del temporizador para mostrar los minutos restantes
-                const timerSpan = document.createElement('span');
-                timerSpan.className = 'timer-text';
-                timerSpan.innerText = '';
-                cabinDiv.appendChild(timerSpan);
-
-                // Almacena los elementos en el objeto de la cabaña
-                cabanas[i].element = cabinDiv;
-                cabanas[i].timerText = timerSpan;
-                cabanas[i].roomNumberElement = roomNumberSpan;
-
-                // Agrega el elemento al DOM
-                cabanasGrid.appendChild(cabinDiv);
-
-                // Agrega un listener para hacer clic en la cabaña
-                cabinDiv.addEventListener('click', () => {
-                    handleCabinClick(i);
-                });
-            }
-        }
-
-        // Manejador del clic en una cabaña
-        function handleCabinClick(cabinNumber) {
-            currentCabinNumber = cabinNumber;
-            const cabin = cabanas[cabinNumber];
-            
-            modalTitle.textContent = `Cabaña ${cabinNumber}`;
-
-            if (cabin.status === 'available') {
-                // Muestra el contenido para asignar
-                assignContent.classList.remove('hidden');
-                manageContent.classList.add('hidden');
-                roomNumberInput.value = '';
-            } else {
-                // Muestra el contenido para gestionar
-                assignContent.classList.add('hidden');
-                manageContent.classList.remove('hidden');
-                occupiedRoomNumber.textContent = cabin.roomNumber;
-                
-                // Decide qué botones mostrar en el modal según el estado
-                startTimerBtn.classList.add('hidden');
-                endBreakBtn.classList.add('hidden');
-                removeItemsBtn.classList.add('hidden');
-                unassignBtn.classList.add('hidden');
-
-                if (cabin.status === 'occupied') {
-                    startTimerBtn.classList.remove('hidden');
-                    unassignBtn.classList.remove('hidden');
-                } else if (cabin.status === 'out') {
-                    endBreakBtn.classList.remove('hidden');
-                    unassignBtn.classList.remove('hidden');
-                } else if (cabin.status === 'expired') {
-                    removeItemsBtn.classList.remove('hidden');
-                    unassignBtn.classList.remove('hidden');
-                }
-            }
-            showModal();
-        }
-
-        // Función para cargar datos de cabañas desde Firebase
-        async function loadCabanasFromFirebase() {
-            console.log('🔍 === INICIO CARGA DE FIREBASE ===');
-            console.log('isFirebaseReady:', isFirebaseReady);
-            console.log('db:', !!db);
-            console.log('cabanasRef:', !!cabanasRef);
-            
-            if (!isFirebaseReady) {
-                console.warn('❌ Firebase no está listo, saltando carga');
-                return;
-            }
-            
-            try {
-                console.log('🔄 Cargando datos de Firebase...');
-                console.log('📍 Ruta de datos:', CABANAS_PATH);
-                console.log('🔗 Creando referencia:', ref(db, CABANAS_PATH));
-                
-                console.log('📡 Ejecutando get()...');
-                const snapshot = await get(ref(db, CABANAS_PATH));
-                console.log('📸 Snapshot recibido:', snapshot);
-                console.log('📊 Snapshot existe:', snapshot.exists());
-                console.log('📦 Snapshot val:', snapshot.val());
-                
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    console.log('�� Datos completos de Firebase:', data);
-                    console.log('🔢 Número de cabañas en Firebase:', Object.keys(data).length);
-                    
-                    // Contador de cabañas actualizadas
-                    let updatedCount = 0;
-                    let errorCount = 0;
-                    
-                    // Procesar cada cabaña encontrada en Firebase
-                    Object.keys(data).forEach(cabinId => {
-                        const cabinData = data[cabinId];
-                        const cabinNumber = parseInt(cabinId);
-                        
-                        console.log(`🏠 Procesando cabaña ${cabinNumber}:`, {
-                            rawData: cabinData,
-                            parsedNumber: cabinNumber,
-                            existsInArray: !!cabanas[cabinNumber]
-                        });
-                        
-                        if (cabanas[cabinNumber]) {
-                            // Guardar estado anterior para comparación
-                            const previousStatus = cabanas[cabinNumber].status;
-                            const previousRoom = cabanas[cabinNumber].roomNumber;
-                            
-                            // IMPORTANTE: Preservar los elementos del DOM
-                            const preservedElement = cabanas[cabinNumber].element;
-                            const preservedTimerText = cabanas[cabinNumber].timerText;
-                            const preservedRoomNumberElement = cabanas[cabinNumber].roomNumberElement;
-                            
-                            // Actualizar estado de la cabaña
-                            cabanas[cabinNumber].status = cabinData.status || 'available';
-                            cabanas[cabinNumber].roomNumber = cabinData.roomNumber || null;
-                            cabanas[cabinNumber].startTime = cabinData.startTime || null;
-                            cabanas[cabinNumber].lastUpdated = cabinData.lastUpdated || null;
-                            cabanas[cabinNumber].updatedBy = cabinData.updatedBy || null;
-                            
-                            // RESTAURAR los elementos del DOM
-                            cabanas[cabinNumber].element = preservedElement;
-                            cabanas[cabinNumber].timerText = preservedTimerText;
-                            cabanas[cabinNumber].roomNumberElement = preservedRoomNumberElement;
-                            
-                            console.log(`✅ Cabaña ${cabinNumber} actualizada:`, {
-                                previous: { status: previousStatus, room: previousRoom },
-                                current: { 
-                                    status: cabanas[cabinNumber].status, 
-                                    room: cabanas[cabinNumber].roomNumber 
-                                },
-                                domElements: {
-                                    element: !!preservedElement,
-                                    timerText: !!preservedTimerText,
-                                    roomNumberElement: !!preservedRoomNumberElement
-                                }
-                            });
-                            
-                            // Actualizar UI inmediatamente
-                            updateCabinUI(cabinNumber);
-                            
-                            // Restaurar temporizador si está en estado 'out'
-                            if (cabinData.status === 'out' && cabinData.startTime) {
-                                console.log(`⏰ Restaurando temporizador para cabaña ${cabinNumber}`);
-                                restoreTimer(cabinNumber, cabinData.roomNumber, cabinData.startTime);
-                            }
-                            
-                            updatedCount++;
-                        } else {
-                            console.error(`❌ Cabaña ${cabinNumber} no encontrada en el array local`);
-                            errorCount++;
-                        }
-                    });
-                    
-                    console.log(`📈 Resumen de carga: ${updatedCount} actualizadas, ${errorCount} errores`);
-                    statusMessage.textContent = `✅ ${updatedCount} cabañas cargadas desde Firebase`;
-                    
-                    // Verificar que las cabañas se hayan actualizado correctamente
-                    setTimeout(() => {
-                        console.log('🔍 Verificación post-carga de cabañas:');
-                        for (let i = 1; i <= 5; i++) { // Solo verificar las primeras 5
-                            if (cabanas[i]) {
-                                console.log(`Cabaña ${i}:`, {
-                                    status: cabanas[i].status,
-                                    roomNumber: cabanas[i].roomNumber,
-                                    elementClasses: cabanas[i].element ? cabanas[i].element.className : 'N/A'
-                                });
-                            }
-                        }
-                    }, 1000);
-                    
-                } else {
-                    console.log('📭 No hay datos en Firebase, usando estado por defecto');
-                    statusMessage.textContent = '✅ Sistema inicializado. No hay datos previos en Firebase.';
-                }
-                
-            } catch (error) {
-                console.error('❌ Error al cargar datos de Firebase:', error);
-                console.error('�� Detalles del error:', {
-                    message: error.message,
-                    code: error.code,
-                    stack: error.stack
-                });
-                statusMessage.textContent = '⚠️ Error al cargar datos de Firebase. Usando estado por defecto.';
-            }
-        }
-
-        // Función para configurar listener en tiempo real
-        function setupRealtimeListener() {
-            if (!isFirebaseReady) return;
-            
-            onValue(cabanasRef, (snapshot) => {
-                if (snapshot.exists()) {
-                    const data = snapshot.val();
-                    Object.keys(data).forEach(cabinId => {
-                        const cabinData = data[cabinId];
-                        const cabinNumber = parseInt(cabinId);
-                        
-                        if (cabanas[cabinNumber] && cabinData.lastUpdated !== cabanas[cabinNumber].lastUpdated) {
-                            // Solo actualizar si hay cambios
-                            cabanas[cabinNumber].status = cabinData.status || 'available';
-                            cabanas[cabinNumber].roomNumber = cabinData.roomNumber || null;
-                            cabanas[cabinNumber].startTime = cabinData.startTime || null;
-                            cabanas[cabinNumber].lastUpdated = cabinData.lastUpdated || null;
-                            cabanas[cabinNumber].updatedBy = cabinData.updatedBy || null;
-                            
-                            updateCabinUI(cabinNumber);
-                        }
-                    });
-                }
-            });
-        }
-
-        // Función para guardar estado de cabaña en Firebase
-        async function saveCabinToFirebase(cabinNumber, updateData = {}) {
-            if (!isFirebaseReady) return;
-            
-            try {
-                const cabinRef = ref(db, `${CABANAS_PATH}/${cabinNumber}`);
-                const dataToSave = {
-                    ...cabanas[cabinNumber],
-                    ...updateData,
-                    lastUpdated: new Date().toISOString(),
-                    updatedBy: authUser ? authUser.uid : 'anonymous'
-                };
-                
-                // Remover propiedades que no queremos guardar
-                delete dataToSave.element;
-                delete dataToSave.timerText;
-                delete dataToSave.roomNumberElement;
-                delete dataToSave.timerId;
-                delete dataToSave.countdownInterval;
-                
-                await set(cabinRef, dataToSave);
-                
-                // Crear log de la acción
-                await createLog(cabinNumber, updateData);
-                
-            } catch (error) {
-                console.error('Error al guardar en Firebase:', error);
-                statusMessage.textContent = '⚠️ Error al sincronizar con Firebase. Los cambios se guardaron localmente.';
-            }
-        }
-
-        // Función para crear logs de acciones
-        async function createLog(cabinNumber, action) {
-            if (!isFirebaseReady) return;
-            
-            try {
-                const logRef = ref(db, LOGS_PATH);
-                const logData = {
-                    cabinNumber,
-                    action: action.status || 'update',
-                    roomNumber: action.roomNumber || cabanas[cabinNumber].roomNumber,
-                    timestamp: new Date().toISOString(),
-                    userId: authUser ? authUser.uid : 'anonymous',
-                    details: action
-                };
-                
-                await push(logRef, logData);
-                console.log(`📝 Log creado para cabaña ${cabinNumber}:`, logData);
-            } catch (error) {
-                console.error('Error al crear log:', error);
-            }
-        }
-
-        // Función específica para crear logs de breaks
-        async function createBreakLog(cabinNumber, breakType, startTime = null, endTime = null, duration = null) {
-            if (!isFirebaseReady) return;
-            
-            try {
-                const logRef = ref(db, LOGS_PATH);
-                const logData = {
-                    cabinNumber,
-                    action: 'break',
-                    breakType: breakType, // 'started', 'completed', 'expired'
-                    roomNumber: cabanas[cabinNumber].roomNumber,
-                    startTime: startTime,
-                    endTime: endTime,
-                    duration: duration, // en minutos
-                    timestamp: new Date().toISOString(),
-                    userId: authUser ? authUser.uid : 'anonymous'
-                };
-                
-                await push(logRef, logData);
-                console.log(`⏰ Log de break creado para cabaña ${cabinNumber}:`, logData);
-            } catch (error) {
-                console.error('Error al crear log de break:', error);
-            }
-        }
-
-        // Función para restaurar temporizador desde Firebase
-        function restoreTimer(cabinNumber, roomNumber, startTime) {
-            const cabin = cabanas[cabinNumber];
-            
-            // Verificar que la cabaña y sus elementos existan
-            if (!cabin) {
-                console.error(`❌ Cabaña ${cabinNumber} no encontrada en restoreTimer`);
-                return;
-            }
-            
-            if (!cabin.timerText) {
-                console.error(`❌ Timer text no encontrado para cabaña ${cabinNumber} en restoreTimer`);
-                return;
-            }
-            
-            const elapsed = new Date().getTime() - new Date(startTime).getTime();
-            const remaining = TIMER_DURATION_MS - elapsed;
-            
-            if (remaining > 0) {
-                // Restaurar temporizador
-                cabin.status = 'out';
-                cabin.startTime = new Date(startTime).getTime();
-                cabin.roomNumber = roomNumber;
-                updateCabinUI(cabinNumber);
-                
-                // Configurar temporizador
-                cabin.timerId = setTimeout(() => {
-                    console.log(`⏰ ⏰ ⏰ TIMER RESTAURADO EXPIRADO para cabaña ${cabinNumber} ⏰ ⏰ ⏰`);
-                    cabin.status = 'expired';
-                    updateCabinUI(cabinNumber);
-                    saveCabinToFirebase(cabinNumber, { status: 'expired' });
-                    
-                    // Mostrar notificación de expiración
-                    console.log(`🔔 Mostrando notificación de expiración (restaurada)...`);
-                    showNotification(`¡Tiempo Expirado! Cabaña ${cabinNumber}`, `La cabaña de la Habitación ${roomNumber} ha excedido el tiempo de break.`);
-                    
-                    statusMessage.textContent = `¡El tiempo para la Cabaña ${cabinNumber} (Habitación ${roomNumber}) ha expirado!`;
-                }, remaining);
-                
-                // Configurar countdown
-                cabin.countdownInterval = setInterval(() => {
-                    if (cabin.status !== 'out') {
-                        clearInterval(cabin.countdownInterval);
-                        cabin.countdownInterval = null;
-                        return;
-                    }
-                    
-                    if (cabin.timerText && cabin.startTime) {
-                        const currentElapsed = new Date().getTime() - cabin.startTime;
-                        const currentRemaining = TIMER_DURATION_MS - currentElapsed;
-                        const minutes = Math.floor(currentRemaining / 60000);
-                        const seconds = Math.floor((currentRemaining % 60000) / 1000);
-                        cabin.timerText.textContent = `${minutes}m ${seconds}s`;
-                    } else {
-                        console.error(`❌ Timer text o startTime no encontrado para cabaña ${cabinNumber} en restoreTimer countdown`);
-                    }
-                }, 1000);
-                
-            } else {
-                // El tiempo ya expiró
-                cabin.status = 'expired';
-                updateCabinUI(cabinNumber);
-                saveCabinToFirebase(cabinNumber, { status: 'expired' });
-                
-                // Crear log de break expirado (restaurado)
-                createBreakLog(cabinNumber, 'expired', new Date(startTime).toISOString(), new Date().toISOString(), 60);
-            }
-        }
-
-        // Función para actualizar la interfaz de una cabaña
-        function updateCabinUI(cabinNumber) {
-            const cabin = cabanas[cabinNumber];
-            if (!cabin || !cabin.element) {
-                console.warn(`⚠️ Cabaña ${cabinNumber} no encontrada o sin elemento`);
-                return;
-            }
-
-            const cabinElement = cabin.element;
-            const timerSpan = cabin.timerText;
-            const roomNumberSpan = cabin.roomNumberElement;
-
-            console.log(`🔄 Actualizando UI de cabaña ${cabinNumber}:`, {
-                status: cabin.status,
-                roomNumber: cabin.roomNumber,
-                startTime: cabin.startTime,
-                elementExists: !!cabinElement,
-                timerSpanExists: !!timerSpan,
-                roomNumberSpanExists: !!roomNumberSpan
-            });
-
-            // Verificar que los elementos existan
-            if (!cabinElement || !timerSpan || !roomNumberSpan) {
-                console.error(`❌ Elementos faltantes para cabaña ${cabinNumber}:`, {
-                    element: !!cabinElement,
-                    timerSpan: !!timerSpan,
-                    roomNumberSpan: !!roomNumberSpan
-                });
-                return;
-            }
-
-            // Remueve las clases de estado existentes
-            cabinElement.classList.remove('available', 'occupied', 'out', 'expired');
-
-            // Aplica las clases y el texto del temporizador según el estado
-            if (cabin.status === 'available') {
-                cabinElement.classList.add('available');
-                timerSpan.classList.remove('visible');
-                roomNumberSpan.classList.remove('visible');
-                roomNumberSpan.innerText = '';
-                timerSpan.innerText = '';
-                
-                // Asegurar que no haya temporizadores activos para este estado
-                if (cabin.timerId || cabin.countdownInterval) {
-                    console.log(`⏰ Limpiando temporizadores activos para cabaña ${cabinNumber} en estado 'available'`);
-                    if (cabin.timerId) {
-                        clearTimeout(cabin.timerId);
-                        cabin.timerId = null;
-                    }
-                    if (cabin.countdownInterval) {
-                        clearInterval(cabin.countdownInterval);
-                        cabin.countdownInterval = null;
-                    }
-                }
-            } else if (cabin.status === 'occupied') {
-                cabinElement.classList.add('occupied');
-                timerSpan.classList.remove('visible');
-                roomNumberSpan.classList.add('visible');
-                roomNumberSpan.innerText = cabin.roomNumber || '';
-                timerSpan.innerText = '';
-                
-                // Asegurar que no haya temporizadores activos para este estado
-                if (cabin.timerId || cabin.countdownInterval) {
-                    console.log(`⏰ Limpiando temporizadores activos para cabaña ${cabinNumber} en estado 'occupied'`);
-                    if (cabin.timerId) {
-                        clearTimeout(cabin.timerId);
-                        cabin.timerId = null;
-                    }
-                    if (cabin.countdownInterval) {
-                        clearInterval(cabin.countdownInterval);
-                        cabin.countdownInterval = null;
-                    }
-                }
-            } else if (cabin.status === 'out') {
-                cabinElement.classList.add('out');
-                timerSpan.classList.add('visible');
-                roomNumberSpan.classList.add('visible');
-                roomNumberSpan.innerText = cabin.roomNumber || '';
-                
-                // NO sobrescribir el timer si ya tiene contenido (evita que se resetee)
-                if (!timerSpan.innerText || timerSpan.innerText === '' || timerSpan.innerText === 'NaNm NaNs') {
-                    console.log(`🔄 Timer vacío o inválido para cabaña ${cabinNumber}, calculando tiempo...`);
-                    // Solo calcular tiempo si no hay texto válido ya establecido
-                    if (cabin.startTime) {
-                        const elapsed = new Date().getTime() - new Date(cabin.startTime).getTime();
-                        const remaining = TIMER_DURATION_MS - elapsed;
-                        if (remaining > 0) {
-                            const minutes = Math.floor(remaining / 60000);
-                            const seconds = Math.floor((remaining % 60000) / 1000);
-                            timerSpan.innerText = `${minutes}m ${seconds}s`;
-                            console.log(`⏰ Timer calculado: ${minutes}m ${seconds}s`);
-                        } else {
-                            timerSpan.innerText = '0m 0s';
-                            console.log(`⏰ Timer expirado: 0m 0s`);
-                        }
-                    } else {
-                        console.log(`⚠️ No hay startTime para cabaña ${cabinNumber}`);
-                        // Establecer tiempo por defecto si no hay startTime
-                        const initialMinutes = Math.floor(TIMER_DURATION_MS / 60000);
-                        const initialSeconds = Math.floor((TIMER_DURATION_MS % 60000) / 1000);
-                        timerSpan.innerText = `${initialMinutes}m ${initialSeconds}s`;
-                        console.log(`⏰ Timer por defecto establecido: ${initialMinutes}m ${initialSeconds}s`);
-                    }
-                } else {
-                    console.log(`✅ Timer preservado para cabaña ${cabinNumber}: ${timerSpan.innerText}`);
-                }
-            } else if (cabin.status === 'expired') {
-                cabinElement.classList.add('expired');
-                timerSpan.classList.remove('visible');
-                roomNumberSpan.classList.add('visible');
-                roomNumberSpan.innerText = cabin.roomNumber || '';
-                timerSpan.innerText = '';
-                
-                // Asegurar que no haya temporizadores activos para este estado
-                if (cabin.timerId || cabin.countdownInterval) {
-                    console.log(`⏰ Limpiando temporizadores activos para cabaña ${cabinNumber} en estado 'expired'`);
-                    if (cabin.timerId) {
-                        clearTimeout(cabin.timerId);
-                        cabin.timerId = null;
-                    }
-                    if (cabin.countdownInterval) {
-                        clearInterval(cabin.countdownInterval);
-                        cabin.countdownInterval = null;
-                    }
-                }
-            }
-            
-            // Verificar que la actualización se haya aplicado correctamente
-            const finalClasses = cabinElement.className;
-            const finalRoomText = roomNumberSpan.innerText;
-            const finalTimerText = timerSpan.innerText;
-            
-            console.log(`✅ UI de cabaña ${cabinNumber} actualizada:`, {
-                classes: finalClasses,
-                roomNumberText: finalRoomText,
-                timerText: finalTimerText,
-                statusApplied: finalClasses.includes(cabin.status),
-                roomNumberVisible: finalRoomText !== '',
-                timerVisible: finalTimerText !== ''
-            });
-            
-            // Verificación adicional
-            if (!finalClasses.includes(cabin.status)) {
-                console.warn(`⚠️ Estado no aplicado correctamente para cabaña ${cabinNumber}`);
-            }
-        }
-        
-        // Función para iniciar el temporizador de comida
-        function startTimer(cabinNumber, roomNumber) {
-            const cabin = cabanas[cabinNumber];
-            
-            // Verificar que la cabaña y sus elementos existan
-            if (!cabin) {
-                console.error(`❌ Cabaña ${cabinNumber} no encontrada`);
-                return;
-            }
-            
-            if (!cabin.timerText) {
-                console.error(`❌ Timer text no encontrado para cabaña ${cabinNumber}`);
-                return;
-            }
-            
-            // Si ya hay un temporizador, lo reiniciamos primero
-            if (cabin.timerId) {
-                console.log(`⏰ Limpiando timerId existente para cabaña ${cabinNumber}`);
-                clearTimeout(cabin.timerId);
-                cabin.timerId = null;
-            }
-            
-            // Limpiar también el countdownInterval si existe
-            if (cabin.countdownInterval) {
-                console.log(`⏰ Limpiando countdownInterval existente para cabaña ${cabinNumber}`);
-                clearInterval(cabin.countdownInterval);
-                cabin.countdownInterval = null;
-            }
-            
-            cabin.status = 'out';
-            cabin.startTime = new Date().getTime();
-            cabin.roomNumber = roomNumber;
-            
-            // MOSTRAR TIEMPO INMEDIATAMENTE antes de actualizar UI
-            console.log(`🔍 Debug cabaña ${cabinNumber}:`, {
-                timerText: !!cabin.timerText,
-                timerTextElement: cabin.timerText,
-                timerTextContent: cabin.timerText ? cabin.timerText.textContent : 'N/A',
-                TIMER_DURATION_MS: TIMER_DURATION_MS
-            });
-            
-            if (cabin.timerText) {
-                const initialMinutes = Math.floor(TIMER_DURATION_MS / 60000);
-                const initialSeconds = Math.floor((TIMER_DURATION_MS % 60000) / 1000);
-                cabin.timerText.textContent = `${initialMinutes}m ${initialSeconds}s`;
-                console.log(`⏰ Timer inicial establecido: ${initialMinutes}m ${initialSeconds}s`);
-            } else {
-                console.error(`❌ Timer text no encontrado para cabaña ${cabinNumber}`);
-            }
-            
-            // NO llamar updateCabinUI aquí - ya se estableció el timer manualmente
-            // Solo actualizar las clases CSS sin tocar el contenido del timer
-            const cabinElement = cabin.element;
-            if (cabinElement) {
-                cabinElement.classList.remove('available', 'occupied', 'expired');
-                cabinElement.classList.add('out');
-                
-                // Mostrar timer y room number
-                if (cabin.timerText) cabin.timerText.classList.add('visible');
-                if (cabin.roomNumberElement) cabin.roomNumberElement.classList.add('visible');
-                if (cabin.roomNumberElement) cabin.roomNumberElement.innerText = roomNumber;
-            }
-
-            // Guardar en Firebase
-            saveCabinToFirebase(cabinNumber, { 
-                status: 'out', 
-                startTime: new Date(cabin.startTime).toISOString() 
-            });
-
-            // Crear log de inicio de break
-            createBreakLog(cabinNumber, 'started', new Date(cabin.startTime).toISOString());
-
-            cabin.timerId = setTimeout(() => {
-                console.log(`⏰ ⏰ ⏰ TIMER EXPIRADO para cabaña ${cabinNumber} ⏰ ⏰ ⏰`);
-                cabin.status = 'expired';
-                updateCabinUI(cabinNumber);
-                saveCabinToFirebase(cabinNumber, { status: 'expired' });
-                
-                // Mostrar notificación de expiración con múltiples métodos
-                console.log(`🔔 Mostrando notificación de expiración...`);
-                
-                // Notificación principal (push)
-                showNotification(`🚨 ¡TIEMPO EXPIRADO! Cabaña ${cabinNumber}`, `La cabaña de la Habitación                // Notificación principal (push)
-                showNotification(`🚨 ¡TIEMPO EXPIRADO! Cabaña ${cabinNumber}`, `La cabaña de la Habitación ${roomNumber} ha excedido el tiempo de break.`);
+                                // Notificación principal (push)
+                                showNotification(`🚨 ¡TIEMPO EXPIRADO! Cabaña ${cabinNumber}`, `La cabaña de la Habitación ${roomNumber} ha excedido el tiempo de break.`);
                 
                 // Mensaje en estado con estilo de alerta
                 statusMessage.textContent = `🚨 ¡ALERTA! Tiempo expirado para Cabaña ${cabinNumber} (Habitación ${roomNumber})`;
@@ -3679,11 +2745,181 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
                 errorMessages.forEach(msg => msg.remove());
             }
             
+            // Ejecutar diagnóstico antes de reintentar
+            runFirebaseDiagnostic();
+            
             // Reinicializar Firebase
             setTimeout(() => {
                 initializeFirebase();
             }, 1000);
         });
+
+        // Event listener para botón de diagnóstico
+        document.getElementById('diagnosticButton').addEventListener('click', () => {
+            console.log('🔍 Ejecutando diagnóstico manual...');
+            statusMessage.textContent = '🔍 Ejecutando diagnóstico...';
+            
+            // Ejecutar diagnóstico completo
+            runFirebaseDiagnostic();
+            
+            // Mostrar resultados en la UI
+            setTimeout(() => {
+                statusMessage.textContent = '🔍 Diagnóstico completado. Revisa la consola del navegador (F12) para ver los resultados.';
+                
+                // Mostrar resumen en la UI
+                const loadingIndicator = document.getElementById('loadingIndicator');
+                if (loadingIndicator) {
+                    const diagnosticResults = document.createElement('div');
+                    diagnosticResults.className = 'text-blue-600 font-semibold text-center mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg';
+                    diagnosticResults.innerHTML = `
+                        <div class="flex items-center justify-center gap-3 mb-2">
+                            <i class="fas fa-info-circle text-xl"></i>
+                            <span class="text-lg">Diagnóstico Completado</span>
+                        </div>
+                        <p class="text-sm text-blue-700 mb-3">Se ha ejecutado un diagnóstico completo del sistema.</p>
+                        <div class="text-xs text-blue-600 space-y-1">
+                            <p><strong>Para ver los resultados:</strong></p>
+                            <ul class="list-disc list-inside space-y-1 ml-2">
+                                <li>Presiona F12 para abrir las herramientas de desarrollador</li>
+                                <li>Ve a la pestaña "Console"</li>
+                                <li>Busca los mensajes que empiezan con "🔍"</li>
+                            </ul>
+                        </div>
+                        <div class="mt-3 p-2 bg-green-50 border border-green-200 rounded">
+                            <p class="text-xs text-green-700">
+                                <strong>Estado actual:</strong><br>
+                                Conectividad: ${navigator.onLine ? '✅ Online' : '❌ Offline'}<br>
+                                Firebase: ${isFirebaseReady ? '✅ Listo' : '❌ No listo'}
+                            </p>
+                        </div>
+                    `;
+                    loadingIndicator.appendChild(diagnosticResults);
+                }
+            }, 2000);
+        });
+
+        // Función de diagnóstico de Firebase
+        function runFirebaseDiagnostic() {
+            console.log('🔍 === DIAGNÓSTICO DE FIREBASE ===');
+            
+            // Verificar conectividad de red
+            console.log('🌐 Conectividad de red:', {
+                onLine: navigator.onLine,
+                connectionType: navigator.connection ? navigator.connection.effectiveType : 'No disponible',
+                downlink: navigator.connection ? navigator.connection.downlink : 'No disponible',
+                rtt: navigator.connection ? navigator.connection.rtt : 'No disponible'
+            });
+            
+            // Verificar configuración de Firebase
+            console.log('🔥 Configuración de Firebase:', {
+                apiKey: firebaseConfig.apiKey ? '✅ Configurado' : '❌ Faltante',
+                authDomain: firebaseConfig.authDomain ? '✅ Configurado' : '❌ Faltante',
+                databaseURL: firebaseConfig.databaseURL ? '✅ Configurado' : '❌ Faltante',
+                projectId: firebaseConfig.projectId ? '✅ Configurado' : '❌ Faltante',
+                storageBucket: firebaseConfig.storageBucket ? '✅ Configurado' : '❌ Faltante',
+                messagingSenderId: firebaseConfig.messagingSenderId ? '✅ Configurado' : '❌ Faltante',
+                appId: firebaseConfig.appId ? '✅ Configurado' : '❌ Faltante'
+            });
+            
+            // Verificar estado de las instancias
+            console.log('🏗️ Estado de las instancias:', {
+                app: !!app,
+                db: !!db,
+                auth: !!auth,
+                isFirebaseReady: isFirebaseReady,
+                cabanasRef: !!cabanasRef,
+                authUser: !!authUser
+            });
+            
+            // Verificar navegador y compatibilidad
+            console.log('📱 Información del navegador:', {
+                userAgent: navigator.userAgent,
+                platform: navigator.platform,
+                cookieEnabled: navigator.cookieEnabled,
+                language: navigator.language,
+                doNotTrack: navigator.doNotTrack,
+                vendor: navigator.vendor
+            });
+            
+            // Verificar elementos del DOM
+            console.log('🎯 Estado del DOM:', {
+                cabanasGrid: !!document.getElementById('cabanasGrid'),
+                loadingIndicator: !!document.getElementById('loadingIndicator'),
+                statusMessage: !!document.getElementById('statusMessage'),
+                connectionStatus: !!document.getElementById('connectionStatus')
+            });
+            
+            // Probar conectividad básica
+            testBasicConnectivity();
+            
+            // Verificar reglas de Firebase (si es posible)
+            checkFirebaseRules();
+        }
+
+        // Función para verificar reglas de Firebase
+        async function checkFirebaseRules() {
+            try {
+                console.log('📋 Verificando reglas de Firebase...');
+                
+                // Intentar leer datos para verificar permisos
+                const testRef = ref(db, 'test-connection');
+                const snapshot = await get(testRef);
+                
+                console.log('✅ Reglas de Firebase: Permisos de lectura OK');
+                
+                // Limpiar el dato de prueba
+                await remove(testRef);
+                console.log('✅ Reglas de Firebase: Permisos de escritura OK');
+                
+            } catch (error) {
+                console.error('❌ Error en reglas de Firebase:', error);
+                
+                if (error.code === 'PERMISSION_DENIED') {
+                    console.log('🔧 Solución: Las reglas de Firebase están muy restrictivas');
+                    console.log('📋 Reglas recomendadas:');
+                    console.log(`
+{
+  "rules": {
+    "cabanas": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    },
+    "logs": {
+      ".read": "auth != null",
+      ".write": "auth != null"
+    }
+  }
+}
+                    `);
+                }
+            }
+        }
+
+        // Función para probar conectividad básica
+        async function testBasicConnectivity() {
+            try {
+                console.log('🌐 Probando conectividad básica...');
+                
+                // Probar conectividad a Google
+                const googleTest = await fetch('https://www.google.com/favicon.ico', { 
+                    method: 'HEAD',
+                    mode: 'no-cors'
+                }).catch(() => null);
+                
+                console.log('✅ Conectividad a Google:', googleTest !== null);
+                
+                // Probar conectividad a Firebase
+                const firebaseTest = await fetch('https://secrets-e9d81-default-rtdb.firebaseio.com/.json', { 
+                    method: 'GET',
+                    mode: 'no-cors'
+                }).catch(() => null);
+                
+                console.log('✅ Conectividad a Firebase:', firebaseTest !== null);
+                
+            } catch (error) {
+                console.error('❌ Error en prueba de conectividad:', error);
+            }
+        }
 
         // Timeout de seguridad unificado para evitar carga infinita
         setTimeout(() => {
@@ -3820,4 +3056,4 @@ O ve a Configuración del navegador > Privacidad y seguridad > Notificaciones
     </script>
 
 </body>
-</html>DNE E AL IREE
+</html>
